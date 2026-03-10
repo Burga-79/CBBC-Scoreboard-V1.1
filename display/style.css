@@ -111,8 +111,8 @@ body {
 }
 
 .club-logo img {
-  max-height: 64px;
-  max-width: 160px;
+  max-height: 128px;
+  max-width: 320px;
   object-fit: contain;
 }
 
