@@ -38,10 +38,26 @@ body.theme-accent-green {
   --sidebar-accent: #00c47a;
 }
 
-body.theme-accent-dual {
-  --sidebar-bg: #101018;
-  --sidebar-text: #ffffff;
-  --sidebar-accent: linear-gradient(180deg, #00a8e8, #00c47a);
+body.theme-accent-dual .sidebar {
+  background: linear-gradient(180deg, #00a8e8, #00c47a);
+  color: #ffffff;
+  border-right: none;
+}
+
+body.theme-accent-dual .sidebar-nav button {
+  color: #ffffff;
+}
+
+body.theme-accent-dual .sidebar-nav button.active {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+body.theme-accent-dual .sidebar-nav button:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+body.theme-accent-dual .sidebar-header .sidebar-sub {
+  opacity: 0.9;
 }
 
 body.content-light {
