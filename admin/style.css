@@ -38,26 +38,11 @@ body.theme-accent-green {
   --sidebar-accent: #00c47a;
 }
 
-body.theme-accent-dual .sidebar {
-  background: linear-gradient(180deg, #00a8e8, #00c47a);
-  color: #ffffff;
-  border-right: none;
-}
-
-body.theme-accent-dual .sidebar-nav button {
-  color: #ffffff;
-}
-
-body.theme-accent-dual .sidebar-nav button.active {
-  background: rgba(255, 255, 255, 0.25);
-}
-
-body.theme-accent-dual .sidebar-nav button:hover {
-  background: rgba(255, 255, 255, 0.15);
-}
-
-body.theme-accent-dual .sidebar-header .sidebar-sub {
-  opacity: 0.9;
+/* Dual accent: full gradient sidebar, no double width */
+body.theme-accent-dual {
+  --sidebar-bg: linear-gradient(180deg, #00a8e8, #00c47a);
+  --sidebar-text: #ffffff;
+  --sidebar-accent: transparent;
 }
 
 body.content-light {
@@ -119,19 +104,9 @@ body.theme-accent-green .sidebar {
   border-right: 4px solid #00c47a;
 }
 
+/* Dual accent: remove border, use full gradient */
 body.theme-accent-dual .sidebar {
-  border-right: 4px solid transparent;
-  position: relative;
-}
-
-body.theme-accent-dual .sidebar::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: linear-gradient(180deg, #00a8e8, #00c47a);
+  border-right: none;
 }
 
 .sidebar-inner {
@@ -155,6 +130,10 @@ body.theme-accent-dual .sidebar::before {
 .sidebar-sub {
   font-size: 12px;
   opacity: 0.8;
+}
+
+body.theme-accent-dual .sidebar-sub {
+  opacity: 0.9;
 }
 
 .sidebar-nav {
@@ -270,6 +249,27 @@ body.theme-accent-dual .sidebar::before {
 .card-title {
   margin-top: 0;
   font-size: 15px;
+}
+
+/* PANEL HEADER ROW */
+
+.panel-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.sort-controls {
+  font-size: 13px;
+}
+
+.sort-controls select {
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--content-text);
 }
 
 /* DASHBOARD STATS */
