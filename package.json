@@ -1,0 +1,41 @@
+{
+  "name": "comet-bay-scoreboard",
+  "version": "1.0.0",
+  "description": "Two-window Electron scoreboard for Comet Bay Bowling Club (Admin + Display + Express server).",
+  "author": "Comet Bay Bowling Club",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron ."
+  },
+  "dependencies": {
+    "express": "^4.19.0",
+    "multer": "^1.4.5-lts.1"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^26.8.1"
+  },
+  "build": {
+    "appId": "com.cometbay.scoreboard",
+    "productName": "Comet Bay Scoreboard",
+    "files": [
+      "admin/**/*",
+      "display/**/*",
+      "main.js",
+      "server.js",
+      "preload.js",
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "images",
+        "to": "images"
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  }
+}
