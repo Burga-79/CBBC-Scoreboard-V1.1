@@ -8,7 +8,8 @@ const LS_KEYS = {
   scoring: "cbbcScoring",
   teams: "cbbcTeams",
   results: "cbbcResults",
-  displayStyle: "cbbcDisplayStyle"
+  displayStyle: "cbbcDisplayStyle",
+  sponsorSpeed: "cbbcSponsorSpeed"
 };
 
 const API_BASE = "http://localhost:3000";
@@ -38,6 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupLogo();
   setupScoring();
   setupDisplayStyle();
+  setupSponsorSpeed();
   setupStats();
   setupReset();
 });
@@ -79,7 +81,6 @@ function applyTheme() {
   document.body.classList.remove("content-light", "content-dark");
   document.body.classList.add(`content-${contentTheme}`);
 
-  // Sync radio buttons
   const themeRadio = document.querySelector(
     `input[name="themeSelect"][value="${theme}"]`
   );
@@ -92,7 +93,6 @@ function applyTheme() {
 }
 
 function setupThemes() {
-  // Default values if not set
   if (!localStorage.getItem(LS_KEYS.theme)) {
     localStorage.setItem(LS_KEYS.theme, "dark");
   }
@@ -148,7 +148,6 @@ function setupPreview() {
     refreshPreview();
   });
 
-  // Auto-refresh every 15 seconds
   if (previewIntervalId) clearInterval(previewIntervalId);
   previewIntervalId = setInterval(refreshPreview, 15000);
 }
@@ -271,7 +270,6 @@ function setupTeams() {
     teams.push(value);
     setTeams(teams);
     nameInput.value = "";
-    // Reset sort to none after adding
     sortSelect.value = "none";
     renderTeams();
   });
@@ -336,7 +334,6 @@ function setupResults() {
     });
   }
 
-  // Exposed so Teams panel can call it
   window.refreshResultsTeamDropdowns = refreshTeamDropdowns;
 
   function computeResultOutcome(shots1, shots2, scoring) {
@@ -358,7 +355,7 @@ function setupResults() {
 
     tableBody.innerHTML = "";
 
-    sorted.forEach((r, index) => {
+    sorted.forEach((r) => {
       const tr = document.createElement("tr");
 
       const roundTd = document.createElement("td");
@@ -504,11 +501,9 @@ function setupResults() {
     });
     setResults(results);
 
-    // Clear inputs
     shots1Input.value = "";
     shots2Input.value = "";
     sheetInput.value = "";
-    // keep round as-is for convenience
 
     renderResults();
   });
@@ -534,7 +529,7 @@ function setupSponsors() {
 
       const img = document.createElement("img");
       img.src = `${API_BASE}${sponsor.url}`;
-      img.alt = sponsor.name || `Sponsor ${index + 1}`;
+      img.alt = sponsor.name || sponsor.filename;
 
       const meta = document.createElement("div");
       meta.className = "thumb-meta";
@@ -588,278 +583,4 @@ function setupSponsors() {
     });
   }
 
-  uploadBtn.addEventListener("click", async () => {
-    if (!uploadInput.files || !uploadInput.files[0]) return;
-    const file = uploadInput.files[0];
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch(`${API_BASE}/upload/sponsor`, {
-        method: "POST",
-        body: formData
-      });
-      if (!res.ok) throw new Error("Upload failed");
-      const data = await res.json();
-
-      const sponsors = loadJSON(LS_KEYS.sponsors, []);
-      sponsors.push({
-        filename: data.filename,
-        url: data.url,
-        active: true,
-        name: data.filename
-      });
-      saveJSON(LS_KEYS.sponsors, sponsors);
-      uploadInput.value = "";
-      renderSponsors();
-      updateStats();
-    } catch (err) {
-      console.error("Sponsor upload error", err);
-      alert("Sponsor upload failed.");
-    }
-  });
-
-  renderSponsors();
-}
-
-/* BACKGROUNDS */
-
-function setupBackgrounds() {
-  const uploadInput = document.getElementById("backgroundUploadInput");
-  const uploadBtn = document.getElementById("backgroundUploadBtn");
-  const gridEl = document.getElementById("backgroundGrid");
-
-  function renderBackgrounds() {
-    const backgrounds = loadJSON(LS_KEYS.backgrounds, []);
-    gridEl.innerHTML = "";
-
-    backgrounds.forEach((bg, index) => {
-      const item = document.createElement("div");
-      item.className = "bg-item";
-
-      const img = document.createElement("img");
-      img.src = `${API_BASE}${bg.url}`;
-      img.alt = bg.filename;
-
-      const footer = document.createElement("div");
-      footer.className = "bg-item-footer";
-
-      const visibleLabel = document.createElement("label");
-      const visibleCheckbox = document.createElement("input");
-      visibleCheckbox.type = "checkbox";
-      visibleCheckbox.checked = !!bg.active;
-      visibleCheckbox.addEventListener("change", () => {
-        const backgrounds = loadJSON(LS_KEYS.backgrounds, []);
-        backgrounds[index].active = visibleCheckbox.checked;
-        saveJSON(LS_KEYS.backgrounds, backgrounds);
-        updateStats();
-      });
-      visibleLabel.appendChild(visibleCheckbox);
-      visibleLabel.appendChild(document.createTextNode("Use"));
-
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "danger";
-      deleteBtn.textContent = "Delete";
-      deleteBtn.addEventListener("click", () => {
-        const backgrounds = loadJSON(LS_KEYS.backgrounds, []);
-        backgrounds.splice(index, 1);
-        saveJSON(LS_KEYS.backgrounds, backgrounds);
-        renderBackgrounds();
-        updateStats();
-      });
-
-      footer.appendChild(visibleLabel);
-      footer.appendChild(deleteBtn);
-
-      item.appendChild(img);
-      item.appendChild(footer);
-
-      gridEl.appendChild(item);
-    });
-  }
-
-  uploadBtn.addEventListener("click", async () => {
-    if (!uploadInput.files || !uploadInput.files[0]) return;
-    const file = uploadInput.files[0];
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch(`${API_BASE}/upload/background`, {
-        method: "POST",
-        body: formData
-      });
-      if (!res.ok) throw new Error("Upload failed");
-      const data = await res.json();
-
-      const backgrounds = loadJSON(LS_KEYS.backgrounds, []);
-      backgrounds.push({
-        filename: data.filename,
-        url: data.url,
-        active: true
-      });
-      saveJSON(LS_KEYS.backgrounds, backgrounds);
-      uploadInput.value = "";
-      renderBackgrounds();
-      updateStats();
-    } catch (err) {
-      console.error("Background upload error", err);
-      alert("Background upload failed.");
-    }
-  });
-
-  renderBackgrounds();
-}
-
-/* LOGO */
-
-function setupLogo() {
-  const uploadInput = document.getElementById("logoUploadInput");
-  const uploadBtn = document.getElementById("logoUploadBtn");
-  const logoImg = document.getElementById("logoPreview");
-
-  function renderLogo() {
-    const logo = loadJSON(LS_KEYS.logo, null);
-    if (logo && logo.url) {
-      logoImg.src = `${API_BASE}${logo.url}`;
-      logoImg.style.display = "block";
-    } else {
-      logoImg.style.display = "none";
-    }
-  }
-
-  uploadBtn.addEventListener("click", async () => {
-    if (!uploadInput.files || !uploadInput.files[0]) return;
-    const file = uploadInput.files[0];
-
-    const formData = new FormData();
-    formData.append("file", file);
-
-    try {
-      const res = await fetch(`${API_BASE}/upload/logo`, {
-        method: "POST",
-        body: formData
-      });
-      if (!res.ok) throw new Error("Upload failed");
-      const data = await res.json();
-
-      const logo = {
-        filename: data.filename,
-        url: data.url
-      };
-      saveJSON(LS_KEYS.logo, logo);
-      uploadInput.value = "";
-      renderLogo();
-    } catch (err) {
-      console.error("Logo upload error", err);
-      alert("Logo upload failed.");
-    }
-  });
-
-  renderLogo();
-}
-
-/* SCORING */
-
-function setupScoring() {
-  const winInput = document.getElementById("pointsWin");
-  const drawInput = document.getElementById("pointsDraw");
-  const lossInput = document.getElementById("pointsLoss");
-  const percCheckbox = document.getElementById("usePercentageTiebreak");
-  const autoCheckbox = document.getElementById("autoDetermineWinner");
-  const saveBtn = document.getElementById("saveScoringBtn");
-
-  const scoring = loadJSON(LS_KEYS.scoring, {
-    win: 4,
-    draw: 2,
-    loss: 0,
-    usePercentage: true,
-    autoWinner: true
-  });
-
-  winInput.value = scoring.win;
-  drawInput.value = scoring.draw;
-  lossInput.value = scoring.loss;
-  percCheckbox.checked = scoring.usePercentage;
-  autoCheckbox.checked = scoring.autoWinner;
-
-  saveBtn.addEventListener("click", () => {
-    const newScoring = {
-      win: Number(winInput.value) || 0,
-      draw: Number(drawInput.value) || 0,
-      loss: Number(lossInput.value) || 0,
-      usePercentage: percCheckbox.checked,
-      autoWinner: autoCheckbox.checked
-    };
-    saveJSON(LS_KEYS.scoring, newScoring);
-    alert("Scoring settings saved.");
-  });
-}
-
-/* DISPLAY STYLE */
-
-function setupDisplayStyle() {
-  const defaultStyle = "sport";
-  if (!localStorage.getItem(LS_KEYS.displayStyle)) {
-    localStorage.setItem(LS_KEYS.displayStyle, defaultStyle);
-  }
-
-  const current = localStorage.getItem(LS_KEYS.displayStyle) || defaultStyle;
-
-  const radios = document.querySelectorAll('input[name="displayStyle"]');
-  radios.forEach((radio) => {
-    if (radio.value === current) {
-      radio.checked = true;
-    }
-    radio.addEventListener("change", (e) => {
-      localStorage.setItem(LS_KEYS.displayStyle, e.target.value);
-    });
-  });
-}
-
-/* STATS */
-
-function setupStats() {
-  updateStats();
-}
-
-function updateStats() {
-  const teams = loadJSON(LS_KEYS.teams, []);
-  const results = loadJSON(LS_KEYS.results, []);
-  const sponsors = loadJSON(LS_KEYS.sponsors, []);
-  const backgrounds = loadJSON(LS_KEYS.backgrounds, []);
-
-  const statTeams = document.getElementById("statTeams");
-  const statResults = document.getElementById("statResults");
-  const statSponsors = document.getElementById("statSponsors");
-  const statBackgrounds = document.getElementById("statBackgrounds");
-
-  if (statTeams) statTeams.textContent = teams.length;
-  if (statResults) statResults.textContent = results.length;
-  if (statSponsors)
-    statSponsors.textContent = sponsors.filter((s) => s.active).length;
-  if (statBackgrounds)
-    statBackgrounds.textContent = backgrounds.filter((b) => b.active).length;
-}
-
-/* RESET */
-
-function setupReset() {
-  const btn = document.getElementById("resetEventBtn");
-  if (!btn) return;
-
-  btn.addEventListener("click", () => {
-    const ok = confirm(
-      "This will clear local event data (teams and results only). Sponsors, backgrounds, logo, and settings will be kept. Continue?"
-    );
-    if (!ok) return;
-
-    localStorage.removeItem(LS_KEYS.teams);
-    localStorage.removeItem(LS_KEYS.results);
-
-    updateStats();
-    alert("Event data cleared (teams and results).");
-  });
-}
+  upload
