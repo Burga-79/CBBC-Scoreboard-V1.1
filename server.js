@@ -4,19 +4,22 @@ const multer = require("multer");
 const express = require("express");
 const app = express();
 
-// In production, process.resourcesPath points to the app's resources folder.
-// In dev, fall back to __dirname.
+/* -------------------------------------------------------
+   RESOURCES PATH (PACKAGED OR DEV)
+------------------------------------------------------- */
 const baseDir = process.resourcesPath || __dirname;
 
-// Images root folder OUTSIDE the ASAR (extraResources in electron-builder)
+/* -------------------------------------------------------
+   IMAGE FOLDERS (OUTSIDE ASAR)
+------------------------------------------------------- */
 const imagesRoot = path.join(baseDir, "images");
-
-// Subfolders
 const logoDir = path.join(imagesRoot, "logo");
 const sponsorDir = path.join(imagesRoot, "sponsors");
 const backgroundDir = path.join(imagesRoot, "backgrounds");
 
-// Ensure folders exist
+/* -------------------------------------------------------
+   ENSURE DIRECTORIES EXIST
+------------------------------------------------------- */
 function ensureDir(dir) {
   try {
     if (!fs.existsSync(dir)) {
@@ -32,10 +35,14 @@ ensureDir(logoDir);
 ensureDir(sponsorDir);
 ensureDir(backgroundDir);
 
-// Serve images
+/* -------------------------------------------------------
+   STATIC FILES
+------------------------------------------------------- */
 app.use("/images", express.static(imagesRoot));
 
-// Multer storage factory
+/* -------------------------------------------------------
+   MULTER STORAGE
+------------------------------------------------------- */
 function makeStorage(targetDir) {
   return multer.diskStorage({
     destination: function (req, file, cb) {
@@ -55,34 +62,45 @@ const uploadLogo = multer({ storage: makeStorage(logoDir) });
 const uploadSponsor = multer({ storage: makeStorage(sponsorDir) });
 const uploadBackground = multer({ storage: makeStorage(backgroundDir) });
 
-// LOGO UPLOAD
+/* -------------------------------------------------------
+   LOGO UPLOAD
+------------------------------------------------------- */
 app.post("/upload/logo", uploadLogo.single("file"), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
   res.json({
     filename: req.file.filename,
     url: `/images/logo/${req.file.filename}`
   });
 });
 
-// SPONSOR UPLOAD
+/* -------------------------------------------------------
+   SPONSOR UPLOAD
+------------------------------------------------------- */
 app.post("/upload/sponsor", uploadSponsor.single("file"), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
   res.json({
     filename: req.file.filename,
     url: `/images/sponsors/${req.file.filename}`
   });
 });
 
-// BACKGROUND UPLOAD
+/* -------------------------------------------------------
+   BACKGROUND UPLOAD
+------------------------------------------------------- */
 app.post("/upload/background", uploadBackground.single("file"), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
   res.json({
     filename: req.file.filename,
     url: `/images/backgrounds/${req.file.filename}`
   });
 });
 
-// Prevent "already running" crash
+/* -------------------------------------------------------
+   START SERVER
+------------------------------------------------------- */
 app
   .listen(3000, () => {
     console.log("Scoreboard server running on port 3000");
