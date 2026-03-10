@@ -17,38 +17,28 @@
     "electron-builder": "^26.8.1"
   },
   "build": {
-  "appId": "com.cometbay.scoreboard",
-  "productName": "Comet Bay Scoreboard",
+    "appId": "com.cometbay.scoreboard",
+    "productName": "Comet Bay Scoreboard",
 
-  "asarUnpack": [
-    "**/server.js",
-    "**/admin/**",
-    "**/display/**"
-  ],
+    "files": [
+      "admin/**/*",
+      "display/**/*",
+      "main.js",
+      "server.js",
+      "preload.js",
+      "package.json",
+      "node_modules/**/*"
+    ],
 
-  "files": [
-    "admin/**/*",
-    "display/**/*",
-    "main.js",
-    "preload.js",
-    "package.json",
-    "node_modules/**/*",
-    "!images/**/*"
-  ],
+    "extraResources": [
+      {
+        "from": "images",
+        "to": "images"
+      }
+    ],
 
-  "extraResources": [
-    {
-      "from": "server.js",
-      "to": "server.js"
-    },
-    {
-      "from": "images",
-      "to": "images"
+    "win": {
+      "target": "nsis"
     }
-  ],
-
-  "win": {
-    "target": "nsis"
   }
- }
 }
