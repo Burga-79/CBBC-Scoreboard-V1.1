@@ -584,44 +584,44 @@ function setupSponsors() {
   }
 
   uploadBtn.addEventListener("click", async () => {
-    const file = uploadInput.files[0];
-    if (!file) {
-      alert("Please select an image first.");
+  const file = uploadInput.files[0];
+  if (!file) {
+    alert("Please select an image first.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", file); // FIXED
+
+  try {
+    const res = await fetch(`${API_BASE}/upload/sponsor`, {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+    if (!data.success) {
+      alert("Upload failed.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
+    const sponsors = loadJSON(LS_KEYS.sponsors, []);
+    sponsors.push({
+      url: data.url,
+      filename: data.filename,
+      name: file.name,
+      active: true
+    });
 
-    try {
-      const res = await fetch(`${API_BASE}/upload/sponsor`, {
-        method: "POST",
-        body: formData
-      });
-
-      const data = await res.json();
-      if (!data.success) {
-        alert("Upload failed.");
-        return;
-      }
-
-      const sponsors = loadJSON(LS_KEYS.sponsors, []);
-      sponsors.push({
-        url: data.url,
-        filename: data.filename,
-        name: file.name,
-        active: true
-      });
-
-      saveJSON(LS_KEYS.sponsors, sponsors);
-      uploadInput.value = "";
-      renderSponsors();
-      updateStats();
-    } catch (err) {
-      console.error("Upload error:", err);
-      alert("Upload failed.");
-    }
-  });
+    saveJSON(LS_KEYS.sponsors, sponsors);
+    uploadInput.value = "";
+    renderSponsors();
+    updateStats();
+  } catch (err) {
+    console.error("Upload error:", err);
+    alert("Upload failed.");
+  }
+});
 
   renderSponsors();
 }
@@ -692,43 +692,43 @@ function setupBackgrounds() {
   }
 
   uploadBtn.addEventListener("click", async () => {
-    const file = uploadInput.files[0];
-    if (!file) {
-      alert("Please select an image first.");
+  const file = uploadInput.files[0];
+  if (!file) {
+    alert("Please select an image first.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", file); // FIXED
+
+  try {
+    const res = await fetch(`${API_BASE}/upload/background`, {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+    if (!data.success) {
+      alert("Upload failed.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
+    const backgrounds = loadJSON(LS_KEYS.backgrounds, []);
+    backgrounds.push({
+      url: data.url,
+      filename: data.filename,
+      active: true
+    });
 
-    try {
-      const res = await fetch(`${API_BASE}/upload/background`, {
-        method: "POST",
-        body: formData
-      });
-
-      const data = await res.json();
-      if (!data.success) {
-        alert("Upload failed.");
-        return;
-      }
-
-      const backgrounds = loadJSON(LS_KEYS.backgrounds, []);
-      backgrounds.push({
-        url: data.url,
-        filename: data.filename,
-        active: true
-      });
-
-      saveJSON(LS_KEYS.backgrounds, backgrounds);
-      uploadInput.value = "";
-      renderBackgrounds();
-      updateStats();
-    } catch (err) {
-      console.error("Upload error:", err);
-      alert("Upload failed.");
-    }
-  });
+    saveJSON(LS_KEYS.backgrounds, backgrounds);
+    uploadInput.value = "";
+    renderBackgrounds();
+    updateStats();
+  } catch (err) {
+    console.error("Upload error:", err);
+    alert("Upload failed.");
+  }
+});
 
   renderBackgrounds();
 }
@@ -751,40 +751,40 @@ function setupLogo() {
   }
 
   uploadBtn.addEventListener("click", async () => {
-    const file = uploadInput.files[0];
-    if (!file) {
-      alert("Please select a logo image first.");
+  const file = uploadInput.files[0];
+  if (!file) {
+    alert("Please select a logo image first.");
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append("file", file); // FIXED
+
+  try {
+    const res = await fetch(`${API_BASE}/upload/logo`, {
+      method: "POST",
+      body: formData
+    });
+
+    const data = await res.json();
+    if (!data.success) {
+      alert("Upload failed.");
       return;
     }
 
-    const formData = new FormData();
-    formData.append("file", file);
+    saveJSON(LS_KEYS.logo, {
+      url: data.url,
+      filename: data.filename
+    });
 
-    try {
-      const res = await fetch(`${API_BASE}/upload/logo`, {
-        method: "POST",
-        body: formData
-      });
-
-      const data = await res.json();
-      if (!data.success) {
-        alert("Upload failed.");
-        return;
-      }
-
-      saveJSON(LS_KEYS.logo, {
-        url: data.url,
-        filename: data.filename
-      });
-
-      uploadInput.value = "";
-      renderLogo();
-      updateStats();
-    } catch (err) {
-      console.error("Upload error:", err);
-      alert("Upload failed.");
-    }
-  });
+    uploadInput.value = "";
+    renderLogo();
+    updateStats();
+  } catch (err) {
+    console.error("Upload error:", err);
+    alert("Upload failed.");
+  }
+});
 
   renderLogo();
 }
