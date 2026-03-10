@@ -21,9 +21,9 @@
   "productName": "Comet Bay Scoreboard",
 
   "asarUnpack": [
-    "server.js",
-    "admin/**/*",
-    "display/**/*"
+    "**/server.js",
+    "**/admin/**",
+    "**/display/**"
   ],
 
   "files": [
