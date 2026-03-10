@@ -1,14 +1,8 @@
-const LS_KEYS = {
-  sponsors: "cbbcSponsors",
-  backgrounds: "cbbcBackgrounds",
-  logo: "cbbcLogo",
-  scoring: "cbbcScoring",
-  teams: "cbbcTeams",
-  results: "cbbcResults",
-  displayStyle: "cbbcDisplayStyle"
-};
+/* DISPLAY SCRIPT — CBBC SCOREBOARD */
 
-const API_BASE = "http://localhost:3000";
+/* ------------------------------
+   LOCAL STORAGE HELPERS
+------------------------------ */
 
 function loadJSON(key, fallback) {
   try {
@@ -20,320 +14,287 @@ function loadJSON(key, fallback) {
   }
 }
 
-/* DISPLAY STYLE */
+/* ------------------------------
+   GLOBAL STATE
+------------------------------ */
 
-function applyDisplayStyle() {
-  const body = document.body;
-  const style = localStorage.getItem(LS_KEYS.displayStyle) || "sport";
-  body.classList.remove("style-sport", "style-fluent");
-  if (style === "fluent") {
-    body.classList.add("style-fluent");
+let sponsorScrollPos = 0;
+let sponsorSpeed = 0.3;
+let backgroundIndex = 0;
+let backgroundTimer = null;
+
+/* ------------------------------
+   INITIAL LOAD
+------------------------------ */
+
+document.addEventListener("DOMContentLoaded", () => {
+  renderClubLogo();
+  renderSponsors();
+  renderBackgrounds();
+  renderLadder();
+  renderResults();
+  startBackgroundRotation();
+  loadSponsorSpeed();
+  startSponsorScroll();
+});
+
+/* ------------------------------
+   CLUB LOGO
+------------------------------ */
+
+function renderClubLogo() {
+  const logo = loadJSON("cbbcLogo", null);
+  const img = document.getElementById("clubLogoImg");
+  if (!img) return;
+
+  if (logo && logo.url) {
+    img.src = `http://localhost:3000${logo.url}`;
+    img.style.display = "block";
   } else {
-    body.classList.add("style-sport");
+    img.style.display = "none";
   }
 }
 
-/* LADDER */
+/* ------------------------------
+   SPONSORS — SCROLLING CAROUSEL
+------------------------------ */
 
-function computeLadder(teams, results, scoring) {
-  const stats = {};
+function loadSponsorSpeed() {
+  const speed = localStorage.getItem("cbbcSponsorSpeed") || "slow";
+  if (speed === "slow") sponsorSpeed = 0.2;
+  if (speed === "medium") sponsorSpeed = 0.4;
+  if (speed === "fast") sponsorSpeed = 0.7;
+}
+
+function renderSponsors() {
+  const sponsors = loadJSON("cbbcSponsors", []);
+  const bar = document.getElementById("sponsorsBar");
+  if (!bar) return;
+
+  bar.innerHTML = "";
+
+  sponsors
+    .filter((s) => s.active)
+    .forEach((s) => {
+      const img = document.createElement("img");
+      img.className = "sponsor-logo";
+      img.src = `http://localhost:3000${s.url}`;
+      bar.appendChild(img);
+    });
+}
+
+function startSponsorScroll() {
+  const bar = document.getElementById("sponsorsBar");
+  if (!bar) return;
+
+  function animate() {
+    const logos = Array.from(bar.children);
+    if (logos.length === 0) return;
+
+    sponsorScrollPos -= sponsorSpeed;
+    bar.style.transform = `translateX(${sponsorScrollPos}px)`;
+
+    const first = logos[0];
+    const firstRect = first.getBoundingClientRect();
+    const barRect = bar.getBoundingClientRect();
+
+    // Loop first logo to end
+    if (firstRect.right < barRect.left) {
+      bar.appendChild(first);
+      sponsorScrollPos += firstRect.width + 32;
+    }
+
+    // Spotlight center sponsor
+    const centerX = barRect.left + barRect.width / 2;
+
+    logos.forEach((logo) => {
+      const rect = logo.getBoundingClientRect();
+      const logoCenter = rect.left + rect.width / 2;
+      const distance = Math.abs(centerX - logoCenter);
+
+      if (distance < rect.width) {
+        logo.classList.add("spotlight");
+      } else {
+        logo.classList.remove("spotlight");
+      }
+    });
+
+    requestAnimationFrame(animate);
+  }
+
+  requestAnimationFrame(animate);
+}
+
+/* ------------------------------
+   BACKGROUNDS — ROTATION
+------------------------------ */
+
+function renderBackgrounds() {
+  const backgrounds = loadJSON("cbbcBackgrounds", []);
+  const active = backgrounds.filter((b) => b.active);
+  const bgEl = document.getElementById("backgroundImage");
+
+  if (!bgEl || active.length === 0) return;
+
+  const bg = active[backgroundIndex % active.length];
+  bgEl.style.backgroundImage = `url("http://localhost:3000${bg.url}")`;
+}
+
+function startBackgroundRotation() {
+  const backgrounds = loadJSON("cbbcBackgrounds", []);
+  const active = backgrounds.filter((b) => b.active);
+
+  if (active.length <= 1) return;
+
+  if (backgroundTimer) clearInterval(backgroundTimer);
+
+  backgroundTimer = setInterval(() => {
+    backgroundIndex++;
+    renderBackgrounds();
+  }, 8000);
+}
+
+/* ------------------------------
+   LADDER CALCULATION
+------------------------------ */
+
+function computeLadder() {
+  const teams = loadJSON("cbbcTeams", []);
+  const results = loadJSON("cbbcResults", []);
+  const scoring = loadJSON("cbbcScoring", {
+    win: 4,
+    draw: 2,
+    loss: 0,
+    usePercentage: true
+  });
+
+  const table = {};
+
   teams.forEach((t) => {
-    stats[t] = {
+    table[t] = {
       team: t,
-      gp: 0,
-      w: 0,
-      d: 0,
-      l: 0,
-      sf: 0,
-      sa: 0,
-      sd: 0,
-      pct: 0,
-      pts: 0
+      played: 0,
+      won: 0,
+      lost: 0,
+      drawn: 0,
+      shotsFor: 0,
+      shotsAgainst: 0,
+      points: 0,
+      percentage: 0
     };
   });
 
   results.forEach((r) => {
-    const t1 = stats[r.team1];
-    const t2 = stats[r.team2];
+    const t1 = table[r.team1];
+    const t2 = table[r.team2];
     if (!t1 || !t2) return;
 
-    t1.gp++;
-    t2.gp++;
-    t1.sf += r.shots1;
-    t1.sa += r.shots2;
-    t2.sf += r.shots2;
-    t2.sa += r.shots1;
+    t1.played++;
+    t2.played++;
+
+    t1.shotsFor += r.shots1;
+    t1.shotsAgainst += r.shots2;
+
+    t2.shotsFor += r.shots2;
+    t2.shotsAgainst += r.shots1;
 
     if (r.result === "team1") {
-      t1.w++;
-      t2.l++;
-      t1.pts += scoring.win;
-      t2.pts += scoring.loss;
+      t1.won++;
+      t2.lost++;
+      t1.points += scoring.win;
+      t2.points += scoring.loss;
     } else if (r.result === "team2") {
-      t2.w++;
-      t1.l++;
-      t2.pts += scoring.win;
-      t1.pts += scoring.loss;
-    } else if (r.result === "draw") {
-      t1.d++;
-      t2.d++;
-      t1.pts += scoring.draw;
-      t2.pts += scoring.draw;
-    }
-  });
-
-  Object.values(stats).forEach((s) => {
-    s.sd = s.sf - s.sa;
-    if (s.sa > 0) {
-      s.pct = (s.sf / s.sa) * 100;
-    } else if (s.sf > 0) {
-      s.pct = 999;
+      t2.won++;
+      t1.lost++;
+      t2.points += scoring.win;
+      t1.points += scoring.loss;
     } else {
-      s.pct = 0;
+      t1.drawn++;
+      t2.drawn++;
+      t1.points += scoring.draw;
+      t2.points += scoring.draw;
     }
   });
 
-  const ladder = Object.values(stats).sort((a, b) => {
-    if (b.pts !== a.pts) return b.pts - a.pts;
-    if (b.sd !== a.sd) return b.sd - a.sd;
-    if (b.sf !== a.sf) return b.sf - a.sf;
-    if (scoring.usePercentage && b.pct !== a.pct) {
-      return b.pct - a.pct;
+  Object.values(table).forEach((t) => {
+    if (t.shotsAgainst === 0) {
+      t.percentage = t.shotsFor > 0 ? 999 : 0;
+    } else {
+      t.percentage = (t.shotsFor / t.shotsAgainst) * 100;
     }
-    return a.team.localeCompare(b.team);
   });
 
-  return ladder;
+  return Object.values(table).sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points;
+    if (b.percentage !== a.percentage) return b.percentage - a.percentage;
+    return b.shotsFor - a.shotsFor;
+  });
 }
 
-function renderLadder(teams, results, scoring) {
-  const ladder = computeLadder(teams, results, scoring);
-  const tbody = document.querySelector("#ladderTable tbody");
-  tbody.innerHTML = "";
+/* ------------------------------
+   RENDER LADDER
+------------------------------ */
 
-  ladder.forEach((row, index) => {
+function renderLadder() {
+  const ladder = computeLadder();
+  const body = document.getElementById("ladderBody");
+  if (!body) return;
+
+  body.innerHTML = "";
+
+  ladder.forEach((t, i) => {
     const tr = document.createElement("tr");
-    const cells = [
-      index + 1,
-      row.team,
-      row.gp,
-      row.w,
-      row.d,
-      row.l,
-      row.sf,
-      row.sa,
-      row.sd,
-      row.pct ? row.pct.toFixed(1) : "-",
-      row.pts
-    ];
-    cells.forEach((val) => {
-      const td = document.createElement("td");
-      td.textContent = val;
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
+
+    tr.innerHTML = `
+      <td>${i + 1}</td>
+      <td>${t.team}</td>
+      <td>${t.played}</td>
+      <td>${t.won}</td>
+      <td>${t.drawn}</td>
+      <td>${t.lost}</td>
+      <td>${t.shotsFor}</td>
+      <td>${t.shotsAgainst}</td>
+      <td>${t.points}</td>
+      <td>${t.percentage.toFixed(1)}%</td>
+    `;
+
+    body.appendChild(tr);
   });
 }
 
-/* RESULTS */
+/* ------------------------------
+   RENDER RESULTS LIST
+------------------------------ */
 
-function renderResults(results) {
-  const container = document.getElementById("resultsList");
-  container.innerHTML = "";
+function renderResults() {
+  const results = loadJSON("cbbcResults", []);
+  const body = document.getElementById("resultsList");
+  if (!body) return;
 
-  const sorted = [...results].sort(
-    (a, b) => (b.round || 0) - (a.round || 0) || (b.timestamp || 0) - (a.timestamp || 0)
-  );
+  const sorted = results
+    .slice()
+    .sort(
+      (a, b) =>
+        (b.round || 0) - (a.round || 0) ||
+        (b.timestamp || 0) - (a.timestamp || 0)
+    );
+
+  body.innerHTML = "";
 
   sorted.forEach((r) => {
     const div = document.createElement("div");
     div.className = "result-item";
 
-    const teamsSpan = document.createElement("span");
-    teamsSpan.className = "result-teams";
-    teamsSpan.textContent = `${r.team1} vs ${r.team2}`;
+    div.innerHTML = `
+      <div class="result-round">Round ${r.round}</div>
+      <div class="result-teams">
+        <span>${r.team1}</span>
+        <strong>${r.shots1} - ${r.shots2}</strong>
+        <span>${r.team2}</span>
+      </div>
+      <div class="result-sheet">${r.sheet || ""}</div>
+    `;
 
-    const scoreSpan = document.createElement("span");
-    scoreSpan.className = "result-score";
-    const sheetText = r.sheet ? ` • ${r.sheet}` : "";
-    scoreSpan.textContent = `R${r.round || "?"}${sheetText}: ${r.shots1} - ${r.shots2}`;
-
-    div.appendChild(teamsSpan);
-    div.appendChild(scoreSpan);
-    container.appendChild(div);
+    body.appendChild(div);
   });
 }
-
-/* LOGOS + SPONSOR CAROUSEL */
-
-let sponsorCarouselState = {
-  sponsors: [],
-  startIndex: 0,
-  visibleCount: 0,
-  timer: null
-};
-
-function renderLogos(logo, sponsors) {
-  const clubLogo = document.getElementById("clubLogo");
-  if (clubLogo) {
-    if (logo && logo.url) {
-      clubLogo.src = `${API_BASE}${logo.url}`;
-    } else {
-      clubLogo.src = `${API_BASE}/images/club-logo.png`;
-    }
-  }
-
-  const sponsorsBar = document.getElementById("sponsorsBar");
-  sponsorsBar.innerHTML = "";
-
-  const enabledSponsors = (sponsors || []).filter((s) => s.active);
-  sponsorCarouselState.sponsors = enabledSponsors;
-  sponsorCarouselState.startIndex = 0;
-
-  if (enabledSponsors.length === 0) return;
-
-  computeVisibleSponsors();
-  renderSponsorStrip();
-  startSponsorCarousel();
-}
-
-function computeVisibleSponsors() {
-  const bar = document.getElementById("sponsorsBar");
-  const barWidth = bar.clientWidth || window.innerWidth;
-  const approxLogoWidth = 160;
-  const total = sponsorCarouselState.sponsors.length;
-  let visible = Math.floor(barWidth / approxLogoWidth);
-  if (visible < 1) visible = 1;
-  if (visible > total) visible = total;
-  sponsorCarouselState.visibleCount = visible;
-}
-
-function renderSponsorStrip() {
-  const bar = document.getElementById("sponsorsBar");
-  bar.innerHTML = "";
-
-  const { sponsors, startIndex, visibleCount } = sponsorCarouselState;
-  if (!sponsors.length) return;
-
-  for (let i = 0; i < visibleCount; i++) {
-    const idx = (startIndex + i) % sponsors.length;
-    const s = sponsors[idx];
-
-    const img = document.createElement("img");
-    img.src = `${API_BASE}${s.url}`;
-    img.className = "sponsor-logo";
-    img.alt = "Sponsor";
-
-    bar.appendChild(img);
-  }
-
-  const centreIndex = Math.floor(visibleCount / 2);
-  const logos = bar.querySelectorAll(".sponsor-logo");
-  if (logos[centreIndex]) {
-    logos[centreIndex].classList.add("active");
-  }
-}
-
-function startSponsorCarousel() {
-  if (sponsorCarouselState.timer) {
-    clearInterval(sponsorCarouselState.timer);
-    sponsorCarouselState.timer = null;
-  }
-
-  if (sponsorCarouselState.sponsors.length <= 1) {
-    renderSponsorStrip();
-    return;
-  }
-
-  sponsorCarouselState.timer = setInterval(() => {
-    sponsorCarouselState.startIndex =
-      (sponsorCarouselState.startIndex + 1) %
-      sponsorCarouselState.sponsors.length;
-    renderSponsorStrip();
-  }, 5000);
-}
-
-/* BACKGROUNDS */
-
-let bgTimer = null;
-
-function applyBackgroundOverlay(value) {
-  const overlay = document.getElementById("backgroundOverlay");
-  if (overlay) {
-    overlay.style.background = `rgba(0,0,0,${value})`;
-  }
-}
-
-function setBackgroundImage(url) {
-  const bg = document.getElementById("backgroundImage");
-  if (bg) {
-    bg.style.backgroundImage = url ? `url("${url}")` : "none";
-  }
-}
-
-function startBackgroundRotation(backgrounds) {
-  if (bgTimer) {
-    clearInterval(bgTimer);
-    bgTimer = null;
-  }
-
-  const enabledImages = (backgrounds || []).filter((img) => img.active);
-  const interval = 30000; // 30s
-  const overlay = 0.4;
-
-  applyBackgroundOverlay(overlay);
-
-  if (enabledImages.length === 0) {
-    setBackgroundImage("");
-    return;
-  }
-
-  let currentIndex = 0;
-
-  function updateSequential() {
-    if (currentIndex >= enabledImages.length) currentIndex = 0;
-    const img = enabledImages[currentIndex];
-    setBackgroundImage(`${API_BASE}${img.url}`);
-    currentIndex++;
-  }
-
-  updateSequential();
-  if (enabledImages.length > 1) {
-    bgTimer = setInterval(updateSequential, interval);
-  }
-}
-
-/* MAIN REFRESH */
-
-function refreshDisplay() {
-  applyDisplayStyle();
-
-  const teams = loadJSON(LS_KEYS.teams, []);
-  const results = loadJSON(LS_KEYS.results, []);
-  const scoring = loadJSON(LS_KEYS.scoring, {
-    win: 4,
-    draw: 2,
-    loss: 0,
-    usePercentage: true,
-    autoWinner: true
-  });
-  const sponsors = loadJSON(LS_KEYS.sponsors, []);
-  const backgrounds = loadJSON(LS_KEYS.backgrounds, []);
-  const logo = loadJSON(LS_KEYS.logo, null);
-
-  renderLadder(teams, results, scoring);
-  renderResults(results);
-  renderLogos(logo, sponsors);
-  startBackgroundRotation(backgrounds);
-}
-
-window.addEventListener("resize", () => {
-  if (!sponsorCarouselState.sponsors.length) return;
-  computeVisibleSponsors();
-  renderSponsorStrip();
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  refreshDisplay();
-  setInterval(refreshDisplay, 15000);
-});
