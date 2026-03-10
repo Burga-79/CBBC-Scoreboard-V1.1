@@ -7,10 +7,20 @@ let displayWindow;
 let serverProcess = null;
 
 /* -------------------------------------------------------
-   START EXPRESS SERVER
+   PREVENT MULTIPLE APP INSTANCES
+------------------------------------------------------- */
+const gotLock = app.requestSingleInstanceLock();
+
+if (!gotLock) {
+  app.quit();
+  process.exit(0);
+}
+
+/* -------------------------------------------------------
+   START EXPRESS SERVER (ONLY ONCE)
 ------------------------------------------------------- */
 function startServerPackaged() {
-  if (serverProcess) return;
+  if (serverProcess) return; // HARD STOP: never start twice
 
   const serverPath = path.join(process.resourcesPath || __dirname, "server.js");
 
@@ -32,6 +42,7 @@ function createWindows() {
   const external = displays.find((d) => d.id !== primary.id);
   const targetDisplay = external || primary;
 
+  // ADMIN WINDOW
   adminWindow = new BrowserWindow({
     width: 1400,
     height: 900,
@@ -43,6 +54,7 @@ function createWindows() {
 
   adminWindow.loadFile(path.join(__dirname, "admin", "admin.html"));
 
+  // DISPLAY WINDOW
   displayWindow = new BrowserWindow({
     x: targetDisplay.bounds.x,
     y: targetDisplay.bounds.y,
@@ -64,16 +76,22 @@ function createWindows() {
 ------------------------------------------------------- */
 app.whenReady().then(() => {
   if (app.isPackaged) {
-    startServerPackaged();
+    startServerPackaged();   // server starts ONCE
   } else {
-    require("./server.js");
+    require("./server.js");  // dev mode
   }
 
   createWindows();
+});
 
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindows();
-  });
+/* -------------------------------------------------------
+   SECOND INSTANCE HANDLER
+------------------------------------------------------- */
+app.on("second-instance", () => {
+  // If someone tries to open the app again, DO NOT create windows
+  if (adminWindow) {
+    adminWindow.focus();
+  }
 });
 
 /* -------------------------------------------------------
