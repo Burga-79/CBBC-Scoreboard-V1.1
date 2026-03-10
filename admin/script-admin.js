@@ -591,7 +591,7 @@ function setupSponsors() {
     }
 
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("file", file);
 
     try {
       const res = await fetch(`${API_BASE}/upload/sponsor`, {
@@ -699,7 +699,7 @@ function setupBackgrounds() {
     }
 
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("file", file);
 
     try {
       const res = await fetch(`${API_BASE}/upload/background`, {
@@ -758,7 +758,7 @@ function setupLogo() {
     }
 
     const formData = new FormData();
-    formData.append("image", file);
+    formData.append("file", file);
 
     try {
       const res = await fetch(`${API_BASE}/upload/logo`, {
