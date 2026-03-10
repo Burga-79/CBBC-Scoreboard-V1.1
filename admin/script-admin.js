@@ -891,19 +891,13 @@ function setupSponsorSpeed() {
 function setupStats() {
   const teamsCountEl = document.getElementById("statTeams");
   const resultsCountEl = document.getElementById("statResults");
-  const sponsorsCountEl = document.getElementById("statSponsors");
-  const backgroundsCountEl = document.getElementById("statBackgrounds");
 
   window.updateStats = function () {
     const teams = loadJSON(LS_KEYS.teams, []);
     const results = loadJSON(LS_KEYS.results, []);
-    const sponsors = loadJSON(LS_KEYS.sponsors, []);
-    const backgrounds = loadJSON(LS_KEYS.backgrounds, []);
 
     if (teamsCountEl) teamsCountEl.textContent = teams.length;
     if (resultsCountEl) resultsCountEl.textContent = results.length;
-    if (sponsorsCountEl) sponsorsCountEl.textContent = sponsors.length;
-    if (backgroundsCountEl) backgroundsCountEl.textContent = backgrounds.length;
   };
 
   updateStats();
