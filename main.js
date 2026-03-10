@@ -7,14 +7,15 @@ let displayWindow;
 let serverProcess = null;
 
 /* -------------------------------------------------------
-   START EXPRESS SERVER (works in dev + packaged EXE)
+   START EXPRESS SERVER
+   - Dev: use require("./server.js")
+   - Packaged: spawn server.js via process.resourcesPath
 ------------------------------------------------------- */
-function startServer() {
-  // In dev: server.js is next to main.js
-  // In production: server.js is unpacked into resources folder
+function startServerPackaged() {
+  if (serverProcess) return; // prevent multiple starts
+
   const serverPath = path.join(process.resourcesPath || __dirname, "server.js");
 
-  // Spawn background Node process using Electron's built‑in Node runtime
   serverProcess = spawn(process.execPath, [serverPath], {
     detached: true,
     stdio: "ignore",
@@ -66,7 +67,14 @@ function createWindows() {
    APP READY
 ------------------------------------------------------- */
 app.whenReady().then(() => {
-  startServer();   // <--- START SERVER AUTOMATICALLY
+  if (app.isPackaged) {
+    // EXE mode: start server via spawned process
+    startServerPackaged();
+  } else {
+    // Dev mode: run server directly
+    require("./server.js");
+  }
+
   createWindows();
 
   app.on("activate", () => {
