@@ -17,14 +17,19 @@ if (!gotLock) {
 }
 
 /* -------------------------------------------------------
-   START EXPRESS SERVER (ONLY ONCE)
+   START EXPRESS SERVER (PACKAGED MODE, ONLY ONCE)
 ------------------------------------------------------- */
 function startServerPackaged() {
-  if (serverProcess) return; // HARD STOP: never start twice
+  if (serverProcess) return; // never start twice
 
-  const serverPath = path.join(process.resourcesPath || __dirname, "server.js");
+  // server.js is copied to: resources/server.js
+  const serverPath = path.join(process.resourcesPath, "server.js");
 
   serverProcess = spawn(process.execPath, [serverPath], {
+    env: {
+      ...process.env,
+      ELECTRON_RUN_AS_NODE: "1" // run as pure Node, not Electron
+    },
     detached: true,
     stdio: "ignore",
     windowsHide: true
@@ -88,7 +93,6 @@ app.whenReady().then(() => {
    SECOND INSTANCE HANDLER
 ------------------------------------------------------- */
 app.on("second-instance", () => {
-  // If someone tries to open the app again, DO NOT create windows
   if (adminWindow) {
     adminWindow.focus();
   }
