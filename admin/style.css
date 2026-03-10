@@ -26,22 +26,10 @@ body.theme-dark {
   --sidebar-accent: transparent;
 }
 
-body.theme-accent-blue {
-  --sidebar-bg: #101018;
-  --sidebar-text: #ffffff;
-  --sidebar-accent: #00a8e8;
-}
-
-body.theme-accent-green {
-  --sidebar-bg: #101018;
-  --sidebar-text: #ffffff;
-  --sidebar-accent: #00c47a;
-}
-
 /* Dual accent: full gradient sidebar, no double width */
 body.theme-accent-dual {
   --sidebar-bg: linear-gradient(180deg, #00a8e8, #00c47a);
-  --sidebar-text: #ffffff;
+  --sidebar-text: #000000;
   --sidebar-accent: transparent;
 }
 
