@@ -564,6 +564,26 @@ button.danger {
   text-align: left;
 }
 
+/* --- PREVIEW FIX: prevent iframe blocking clicks --- */
+
+#previewContainer,
+#previewFrameWrapper,
+#previewFrame {
+  pointer-events: none;   /* iframe cannot intercept clicks */
+  z-index: 0;             /* sits behind everything */
+}
+
+.panel {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;   /* inactive panels cannot be clicked */
+}
+
+.panel.active {
+  z-index: 10;            /* active panel sits above preview */
+  pointer-events: auto;   /* fully interactive */
+}
+
 /* RESPONSIVE */
 
 @media (max-width: 900px) {
