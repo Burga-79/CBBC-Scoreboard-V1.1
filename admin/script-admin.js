@@ -31,6 +31,8 @@ document.addEventListener("DOMContentLoaded", () => {
   setupNavigation();
   setupThemes();
   setupPreview();
+  setupTeams();
+  setupResults();
   setupSponsors();
   setupBackgrounds();
   setupLogo();
@@ -149,6 +151,370 @@ function setupPreview() {
   // Auto-refresh every 15 seconds
   if (previewIntervalId) clearInterval(previewIntervalId);
   previewIntervalId = setInterval(refreshPreview, 15000);
+}
+
+/* TEAMS */
+
+function setupTeams() {
+  const nameInput = document.getElementById("teamNameInput");
+  const addBtn = document.getElementById("addTeamBtn");
+  const tableBody = document.getElementById("teamsTableBody");
+  const sortSelect = document.getElementById("teamsSortSelect");
+
+  function getTeams() {
+    return loadJSON(LS_KEYS.teams, []);
+  }
+
+  function setTeams(teams) {
+    saveJSON(LS_KEYS.teams, teams);
+    updateStats();
+    refreshResultsTeamDropdowns();
+  }
+
+  function parseLeadingNumber(name) {
+    const match = name.match(/^(\d+)/);
+    if (!match) return null;
+    return Number(match[1]);
+  }
+
+  function getSortedTeams(teams) {
+    const mode = sortSelect.value || "none";
+    if (mode === "none") return teams.slice();
+
+    const copy = teams.slice();
+
+    if (mode === "az" || mode === "za") {
+      copy.sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+      if (mode === "za") copy.reverse();
+      return copy;
+    }
+
+    if (mode === "numAsc" || mode === "numDesc") {
+      copy.sort((a, b) => {
+        const na = parseLeadingNumber(a);
+        const nb = parseLeadingNumber(b);
+
+        if (na == null && nb == null) {
+          return a.localeCompare(b, undefined, { sensitivity: "base" });
+        }
+        if (na == null) return 1;
+        if (nb == null) return -1;
+        return na - nb;
+      });
+      if (mode === "numDesc") copy.reverse();
+      return copy;
+    }
+
+    return teams.slice();
+  }
+
+  function renderTeams() {
+    const teams = getTeams();
+    const sorted = getSortedTeams(teams);
+    tableBody.innerHTML = "";
+
+    sorted.forEach((teamName, index) => {
+      const tr = document.createElement("tr");
+
+      const idxTd = document.createElement("td");
+      idxTd.textContent = index + 1;
+
+      const nameTd = document.createElement("td");
+      nameTd.textContent = teamName;
+
+      const actionsTd = document.createElement("td");
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "primary";
+      editBtn.textContent = "Edit";
+      editBtn.style.marginRight = "4px";
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "danger";
+      deleteBtn.textContent = "Delete";
+
+      editBtn.addEventListener("click", () => {
+        const newName = prompt("Edit team name / skipper:", teamName);
+        if (!newName) return;
+        const allTeams = getTeams();
+        const originalIndex = allTeams.indexOf(teamName);
+        if (originalIndex >= 0) {
+          allTeams[originalIndex] = newName.trim();
+          setTeams(allTeams);
+          renderTeams();
+        }
+      });
+
+      deleteBtn.addEventListener("click", () => {
+        const ok = confirm(`Delete team "${teamName}"?`);
+        if (!ok) return;
+        const allTeams = getTeams().filter((t) => t !== teamName);
+        setTeams(allTeams);
+        renderTeams();
+      });
+
+      actionsTd.appendChild(editBtn);
+      actionsTd.appendChild(deleteBtn);
+
+      tr.appendChild(idxTd);
+      tr.appendChild(nameTd);
+      tr.appendChild(actionsTd);
+
+      tableBody.appendChild(tr);
+    });
+  }
+
+  addBtn.addEventListener("click", () => {
+    const value = (nameInput.value || "").trim();
+    if (!value) return;
+    const teams = getTeams();
+    teams.push(value);
+    setTeams(teams);
+    nameInput.value = "";
+    // Reset sort to none after adding
+    sortSelect.value = "none";
+    renderTeams();
+  });
+
+  sortSelect.addEventListener("change", () => {
+    renderTeams();
+  });
+
+  renderTeams();
+}
+
+/* RESULTS */
+
+function setupResults() {
+  const roundInput = document.getElementById("resultRoundInput");
+  const sheetInput = document.getElementById("resultSheetInput");
+  const team1Select = document.getElementById("resultTeam1Select");
+  const team2Select = document.getElementById("resultTeam2Select");
+  const shots1Input = document.getElementById("resultShots1Input");
+  const shots2Input = document.getElementById("resultShots2Input");
+  const addBtn = document.getElementById("addResultBtn");
+  const tableBody = document.getElementById("resultsTableBody");
+
+  function getTeams() {
+    return loadJSON(LS_KEYS.teams, []);
+  }
+
+  function getResults() {
+    return loadJSON(LS_KEYS.results, []);
+  }
+
+  function setResults(results) {
+    saveJSON(LS_KEYS.results, results);
+    updateStats();
+  }
+
+  function getScoring() {
+    return loadJSON(LS_KEYS.scoring, {
+      win: 4,
+      draw: 2,
+      loss: 0,
+      usePercentage: true,
+      autoWinner: true
+    });
+  }
+
+  function refreshTeamDropdowns() {
+    const teams = getTeams();
+    [team1Select, team2Select].forEach((select) => {
+      select.innerHTML = "";
+      const placeholder = document.createElement("option");
+      placeholder.value = "";
+      placeholder.textContent = "-- Select team --";
+      select.appendChild(placeholder);
+
+      teams.forEach((t) => {
+        const opt = document.createElement("option");
+        opt.value = t;
+        opt.textContent = t;
+        select.appendChild(opt);
+      });
+    });
+  }
+
+  // Exposed so Teams panel can call it
+  window.refreshResultsTeamDropdowns = refreshTeamDropdowns;
+
+  function computeResultOutcome(shots1, shots2, scoring) {
+    if (!scoring.autoWinner) return null;
+    if (shots1 > shots2) return "team1";
+    if (shots2 > shots1) return "team2";
+    return "draw";
+  }
+
+  function renderResults() {
+    const results = getResults();
+    const sorted = results
+      .slice()
+      .sort(
+        (a, b) =>
+          (b.round || 0) - (a.round || 0) ||
+          (b.timestamp || 0) - (a.timestamp || 0)
+      );
+
+    tableBody.innerHTML = "";
+
+    sorted.forEach((r, index) => {
+      const tr = document.createElement("tr");
+
+      const roundTd = document.createElement("td");
+      roundTd.textContent = r.round || "";
+
+      const team1Td = document.createElement("td");
+      team1Td.textContent = r.team1;
+
+      const scoreTd = document.createElement("td");
+      scoreTd.textContent = `${r.shots1} - ${r.shots2}`;
+
+      const team2Td = document.createElement("td");
+      team2Td.textContent = r.team2;
+
+      const sheetTd = document.createElement("td");
+      sheetTd.textContent = r.sheet || "";
+
+      const actionsTd = document.createElement("td");
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "primary";
+      editBtn.textContent = "Edit";
+      editBtn.style.marginRight = "4px";
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "danger";
+      deleteBtn.textContent = "Delete";
+
+      editBtn.addEventListener("click", () => {
+        const newRound = prompt("Round:", r.round ?? "");
+        if (newRound === null) return;
+
+        const newSheet = prompt("Sheet / Rink:", r.sheet ?? "");
+        if (newSheet === null) return;
+
+        const newShots1 = prompt("Shots (Team 1):", r.shots1);
+        if (newShots1 === null) return;
+
+        const newShots2 = prompt("Shots (Team 2):", r.shots2);
+        if (newShots2 === null) return;
+
+        const roundVal = Number(newRound) || 0;
+        const s1 = Number(newShots1);
+        const s2 = Number(newShots2);
+        if (isNaN(s1) || isNaN(s2) || s1 < 0 || s2 < 0) {
+          alert("Invalid scores.");
+          return;
+        }
+
+        const scoring = getScoring();
+        const outcome = computeResultOutcome(s1, s2, scoring);
+
+        const all = getResults();
+        const originalIndex = all.findIndex(
+          (x) =>
+            x.team1 === r.team1 &&
+            x.team2 === r.team2 &&
+            x.timestamp === r.timestamp
+        );
+        if (originalIndex >= 0) {
+          all[originalIndex] = {
+            ...all[originalIndex],
+            round: roundVal,
+            sheet: newSheet || "",
+            shots1: s1,
+            shots2: s2,
+            result: outcome ?? all[originalIndex].result
+          };
+          setResults(all);
+          renderResults();
+        }
+      });
+
+      deleteBtn.addEventListener("click", () => {
+        const ok = confirm(
+          `Delete result: ${r.team1} ${r.shots1} - ${r.shots2} ${r.team2}?`
+        );
+        if (!ok) return;
+        const all = getResults().filter(
+          (x) =>
+            !(
+              x.team1 === r.team1 &&
+              x.team2 === r.team2 &&
+              x.shots1 === r.shots1 &&
+              x.shots2 === r.shots2 &&
+              x.round === r.round &&
+              x.sheet === r.sheet &&
+              x.timestamp === r.timestamp
+            )
+        );
+        setResults(all);
+        renderResults();
+      });
+
+      actionsTd.appendChild(editBtn);
+      actionsTd.appendChild(deleteBtn);
+
+      tr.appendChild(roundTd);
+      tr.appendChild(team1Td);
+      tr.appendChild(scoreTd);
+      tr.appendChild(team2Td);
+      tr.appendChild(sheetTd);
+      tr.appendChild(actionsTd);
+
+      tableBody.appendChild(tr);
+    });
+  }
+
+  addBtn.addEventListener("click", () => {
+    const roundVal = Number(roundInput.value) || 0;
+    const sheetVal = (sheetInput.value || "").trim();
+    const team1 = team1Select.value;
+    const team2 = team2Select.value;
+    const s1 = Number(shots1Input.value);
+    const s2 = Number(shots2Input.value);
+
+    if (!team1 || !team2) {
+      alert("Please select both teams.");
+      return;
+    }
+    if (team1 === team2) {
+      alert("Team 1 and Team 2 must be different.");
+      return;
+    }
+    if (isNaN(s1) || isNaN(s2) || s1 < 0 || s2 < 0) {
+      alert("Please enter valid non-negative scores.");
+      return;
+    }
+
+    const scoring = getScoring();
+    const outcome = computeResultOutcome(s1, s2, scoring);
+
+    const results = getResults();
+    results.push({
+      team1,
+      team2,
+      shots1: s1,
+      shots2: s2,
+      round: roundVal,
+      sheet: sheetVal,
+      timestamp: Date.now(),
+      result: outcome
+    });
+    setResults(results);
+
+    // Clear inputs
+    shots1Input.value = "";
+    shots2Input.value = "";
+    sheetInput.value = "";
+    // keep round as-is for convenience
+
+    renderResults();
+  });
+
+  refreshTeamDropdowns();
+  renderResults();
 }
 
 /* SPONSORS */
@@ -486,16 +852,14 @@ function setupReset() {
 
   btn.addEventListener("click", () => {
     const ok = confirm(
-      "This will clear local event data (teams/results/sponsors/backgrounds). Continue?"
+      "This will clear local event data (teams and results only). Sponsors, backgrounds, logo, and settings will be kept. Continue?"
     );
     if (!ok) return;
 
     localStorage.removeItem(LS_KEYS.teams);
     localStorage.removeItem(LS_KEYS.results);
-    localStorage.removeItem(LS_KEYS.sponsors);
-    localStorage.removeItem(LS_KEYS.backgrounds);
 
     updateStats();
-    alert("Event data cleared (localStorage).");
+    alert("Event data cleared (teams and results).");
   });
 }
