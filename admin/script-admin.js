@@ -591,7 +591,7 @@ function setupSponsors() {
   }
 
   const formData = new FormData();
-  formData.append("file", file); // FIXED
+  formData.append("file", file);
 
   try {
     const res = await fetch(`${API_BASE}/upload/sponsor`, {
@@ -600,7 +600,9 @@ function setupSponsors() {
     });
 
     const data = await res.json();
-    if (!data.success) {
+
+    // FIXED SUCCESS CHECK
+    if (!data || !data.url) {
       alert("Upload failed.");
       return;
     }
@@ -699,7 +701,7 @@ function setupBackgrounds() {
   }
 
   const formData = new FormData();
-  formData.append("file", file); // FIXED
+  formData.append("file", file);
 
   try {
     const res = await fetch(`${API_BASE}/upload/background`, {
@@ -708,7 +710,9 @@ function setupBackgrounds() {
     });
 
     const data = await res.json();
-    if (!data.success) {
+
+    // FIXED SUCCESS CHECK
+    if (!data || !data.url) {
       alert("Upload failed.");
       return;
     }
@@ -758,7 +762,7 @@ function setupLogo() {
   }
 
   const formData = new FormData();
-  formData.append("file", file); // FIXED
+  formData.append("file", file);
 
   try {
     const res = await fetch(`${API_BASE}/upload/logo`, {
@@ -767,7 +771,9 @@ function setupLogo() {
     });
 
     const data = await res.json();
-    if (!data.success) {
+
+    // FIXED SUCCESS CHECK
+    if (!data || !data.url) {
       alert("Upload failed.");
       return;
     }
