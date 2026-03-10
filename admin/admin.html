@@ -79,19 +79,44 @@
         </div>
       </section>
 
-      <!-- TEAMS -->
+            <!-- TEAMS -->
       <section id="panel-teams" class="panel">
         <div class="card">
-          <h2>Teams</h2>
-          <p class="card-sub">
-            Placeholder only – wire this to your existing teams storage when ready.
-          </p>
+          <div class="panel-header-row">
+            <div>
+              <h2>Teams</h2>
+              <p class="card-sub">
+                Add, edit, and manage the teams used in the ladder and results.
+              </p>
+            </div>
+            <div class="sort-controls">
+              <label>
+                Sort:
+                <select id="teamsSortSelect">
+                  <option value="none">None</option>
+                  <option value="az">A → Z</option>
+                  <option value="za">Z → A</option>
+                  <option value="numAsc">1 → 9</option>
+                  <option value="numDesc">9 → 1</option>
+                </select>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <label>
+              Team name / Skipper
+              <input type="text" id="teamNameInput" />
+            </label>
+            <button class="primary" id="addTeamBtn">Add team</button>
+          </div>
+
           <table class="table" id="teamsTable">
             <thead>
               <tr>
-                <th>Name</th>
-                <th>Division</th>
-                <th>Actions</th>
+                <th>#</th>
+                <th>Team</th>
+                <th style="width: 120px;">Actions</th>
               </tr>
             </thead>
             <tbody id="teamsTableBody"></tbody>
@@ -104,9 +129,62 @@
         <div class="card">
           <h2>Results</h2>
           <p class="card-sub">
-            Placeholder only – paste your existing results UI here when you’re ready.
+            Enter match results to update the ladder and recent results display.
           </p>
-          <div id="resultsContent"></div>
+
+          <div class="form-row">
+            <label>
+              Round
+              <input type="number" id="resultRoundInput" min="1" step="1" />
+            </label>
+            <label>
+              Sheet / Rink
+              <input type="text" id="resultSheetInput" />
+            </label>
+          </div>
+
+          <div class="form-row">
+            <label>
+              Team 1
+              <select id="resultTeam1Select"></select>
+            </label>
+            <label>
+              Shots (Team 1)
+              <input type="number" id="resultShots1Input" min="0" step="1" />
+            </label>
+          </div>
+
+          <div class="form-row">
+            <label>
+              Team 2
+              <select id="resultTeam2Select"></select>
+            </label>
+            <label>
+              Shots (Team 2)
+              <input type="number" id="resultShots2Input" min="0" step="1" />
+            </label>
+          </div>
+
+          <div class="form-row">
+            <button class="primary" id="addResultBtn">Add result</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Results list</h3>
+          <table class="table" id="resultsTable">
+            <thead>
+              <tr>
+                <th>Round</th>
+                <th>Team 1</th>
+                <th>Score</th>
+                <th>Team 2</th>
+                <th>Sheet</th>
+                <th style="width: 120px;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="resultsTableBody"></tbody>
+          </table>
         </div>
       </section>
 
