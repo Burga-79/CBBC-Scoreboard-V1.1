@@ -583,4 +583,352 @@ function setupSponsors() {
     });
   }
 
-  upload
+  uploadBtn.addEventListener("click", async () => {
+    const file = uploadInput.files[0];
+    if (!file) {
+      alert("Please select an image first.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const res = await fetch(`${API_BASE}/upload/sponsor`, {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        alert("Upload failed.");
+        return;
+      }
+
+      const sponsors = loadJSON(LS_KEYS.sponsors, []);
+      sponsors.push({
+        url: data.url,
+        filename: data.filename,
+        name: file.name,
+        active: true
+      });
+
+      saveJSON(LS_KEYS.sponsors, sponsors);
+      uploadInput.value = "";
+      renderSponsors();
+      updateStats();
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Upload failed.");
+    }
+  });
+
+  renderSponsors();
+}
+
+/* BACKGROUNDS */
+
+function setupBackgrounds() {
+  const uploadInput = document.getElementById("backgroundUploadInput");
+  const uploadBtn = document.getElementById("backgroundUploadBtn");
+  const listEl = document.getElementById("backgroundList");
+
+  function renderBackgrounds() {
+    const backgrounds = loadJSON(LS_KEYS.backgrounds, []);
+    listEl.innerHTML = "";
+
+    backgrounds.forEach((bg, index) => {
+      const item = document.createElement("div");
+      item.className = "thumb-item";
+
+      const img = document.createElement("img");
+      img.src = `${API_BASE}${bg.url}`;
+      img.alt = bg.filename;
+
+      const meta = document.createElement("div");
+      meta.className = "thumb-meta";
+
+      const nameSpan = document.createElement("span");
+      nameSpan.textContent = bg.filename;
+
+      meta.appendChild(nameSpan);
+
+      const actions = document.createElement("div");
+      actions.className = "thumb-actions";
+
+      const visibleLabel = document.createElement("label");
+      const visibleCheckbox = document.createElement("input");
+      visibleCheckbox.type = "checkbox";
+      visibleCheckbox.checked = !!bg.active;
+      visibleCheckbox.addEventListener("change", () => {
+        const backgrounds = loadJSON(LS_KEYS.backgrounds, []);
+        backgrounds[index].active = visibleCheckbox.checked;
+        saveJSON(LS_KEYS.backgrounds, backgrounds);
+        updateStats();
+      });
+      visibleLabel.appendChild(visibleCheckbox);
+      visibleLabel.appendChild(document.createTextNode("Visible"));
+
+      const deleteBtn = document.createElement("button");
+      deleteBtn.className = "danger";
+      deleteBtn.textContent = "Delete";
+      deleteBtn.addEventListener("click", () => {
+        const backgrounds = loadJSON(LS_KEYS.backgrounds, []);
+        backgrounds.splice(index, 1);
+        saveJSON(LS_KEYS.backgrounds, backgrounds);
+        renderBackgrounds();
+        updateStats();
+      });
+
+      actions.appendChild(visibleLabel);
+      actions.appendChild(deleteBtn);
+
+      item.appendChild(img);
+      item.appendChild(meta);
+      item.appendChild(actions);
+
+      listEl.appendChild(item);
+    });
+  }
+
+  uploadBtn.addEventListener("click", async () => {
+    const file = uploadInput.files[0];
+    if (!file) {
+      alert("Please select an image first.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const res = await fetch(`${API_BASE}/upload/background`, {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        alert("Upload failed.");
+        return;
+      }
+
+      const backgrounds = loadJSON(LS_KEYS.backgrounds, []);
+      backgrounds.push({
+        url: data.url,
+        filename: data.filename,
+        active: true
+      });
+
+      saveJSON(LS_KEYS.backgrounds, backgrounds);
+      uploadInput.value = "";
+      renderBackgrounds();
+      updateStats();
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Upload failed.");
+    }
+  });
+
+  renderBackgrounds();
+}
+
+/* CLUB LOGO */
+
+function setupLogo() {
+  const uploadInput = document.getElementById("logoUploadInput");
+  const uploadBtn = document.getElementById("logoUploadBtn");
+  const preview = document.getElementById("logoPreview");
+
+  function renderLogo() {
+    const logo = loadJSON(LS_KEYS.logo, null);
+    if (logo && logo.url) {
+      preview.src = `${API_BASE}${logo.url}`;
+      preview.style.display = "block";
+    } else {
+      preview.style.display = "none";
+    }
+  }
+
+  uploadBtn.addEventListener("click", async () => {
+    const file = uploadInput.files[0];
+    if (!file) {
+      alert("Please select a logo image first.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const res = await fetch(`${API_BASE}/upload/logo`, {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        alert("Upload failed.");
+        return;
+      }
+
+      saveJSON(LS_KEYS.logo, {
+        url: data.url,
+        filename: data.filename
+      });
+
+      uploadInput.value = "";
+      renderLogo();
+      updateStats();
+    } catch (err) {
+      console.error("Upload error:", err);
+      alert("Upload failed.");
+    }
+  });
+
+  renderLogo();
+}
+
+/* SCORING SETTINGS */
+
+function setupScoring() {
+  const winInput = document.getElementById("scoringWinInput");
+  const drawInput = document.getElementById("scoringDrawInput");
+  const lossInput = document.getElementById("scoringLossInput");
+  const usePctCheckbox = document.getElementById("scoringUsePct");
+  const autoWinnerCheckbox = document.getElementById("scoringAutoWinner");
+  const saveBtn = document.getElementById("saveScoringBtn");
+
+  function loadScoring() {
+    const scoring = loadJSON(LS_KEYS.scoring, {
+      win: 4,
+      draw: 2,
+      loss: 0,
+      usePercentage: true,
+      autoWinner: true
+    });
+
+    winInput.value = scoring.win;
+    drawInput.value = scoring.draw;
+    lossInput.value = scoring.loss;
+    usePctCheckbox.checked = scoring.usePercentage;
+    autoWinnerCheckbox.checked = scoring.autoWinner;
+  }
+
+  saveBtn.addEventListener("click", () => {
+    const win = Number(winInput.value);
+    const draw = Number(drawInput.value);
+    const loss = Number(lossInput.value);
+
+    if ([win, draw, loss].some((v) => isNaN(v) || v < 0)) {
+      alert("Invalid scoring values.");
+      return;
+    }
+
+    const scoring = {
+      win,
+      draw,
+      loss,
+      usePercentage: usePctCheckbox.checked,
+      autoWinner: autoWinnerCheckbox.checked
+    };
+
+    saveJSON(LS_KEYS.scoring, scoring);
+    alert("Scoring settings saved.");
+  });
+
+  loadScoring();
+}
+
+/* DISPLAY STYLE (FLUENT / DEFAULT) */
+
+function setupDisplayStyle() {
+  const styleRadios = document.querySelectorAll('input[name="displayStyle"]');
+
+  function applyDisplayStyle() {
+    const style = localStorage.getItem(LS_KEYS.displayStyle) || "default";
+    const radio = document.querySelector(
+      `input[name="displayStyle"][value="${style}"]`
+    );
+    if (radio) radio.checked = true;
+  }
+
+  styleRadios.forEach((radio) => {
+    radio.addEventListener("change", (e) => {
+      localStorage.setItem(LS_KEYS.displayStyle, e.target.value);
+      alert("Display style saved. Refresh the display to apply.");
+    });
+  });
+
+  applyDisplayStyle();
+}
+
+/* SPONSOR SPEED */
+
+function setupSponsorSpeed() {
+  const speedRadios = document.querySelectorAll('input[name="sponsorSpeed"]');
+
+  function applySpeed() {
+    const speed = localStorage.getItem(LS_KEYS.sponsorSpeed) || "slow";
+    const radio = document.querySelector(
+      `input[name="sponsorSpeed"][value="${speed}"]`
+    );
+    if (radio) radio.checked = true;
+  }
+
+  speedRadios.forEach((radio) => {
+    radio.addEventListener("change", (e) => {
+      localStorage.setItem(LS_KEYS.sponsorSpeed, e.target.value);
+      alert("Sponsor scroll speed saved.");
+    });
+  });
+
+  applySpeed();
+}
+
+/* STATS */
+
+function setupStats() {
+  const teamsCountEl = document.getElementById("statTeams");
+  const resultsCountEl = document.getElementById("statResults");
+  const sponsorsCountEl = document.getElementById("statSponsors");
+  const backgroundsCountEl = document.getElementById("statBackgrounds");
+
+  window.updateStats = function () {
+    const teams = loadJSON(LS_KEYS.teams, []);
+    const results = loadJSON(LS_KEYS.results, []);
+    const sponsors = loadJSON(LS_KEYS.sponsors, []);
+    const backgrounds = loadJSON(LS_KEYS.backgrounds, []);
+
+    if (teamsCountEl) teamsCountEl.textContent = teams.length;
+    if (resultsCountEl) resultsCountEl.textContent = results.length;
+    if (sponsorsCountEl) sponsorsCountEl.textContent = sponsors.length;
+    if (backgroundsCountEl) backgroundsCountEl.textContent = backgrounds.length;
+  };
+
+  updateStats();
+}
+
+/* RESET EVENT (TEAMS + RESULTS ONLY) */
+
+function setupReset() {
+  const resetBtn = document.getElementById("resetEventBtn");
+
+  resetBtn.addEventListener("click", () => {
+    const ok = confirm(
+      "This will clear ALL teams and ALL results.\nSponsors, backgrounds, logo, and settings will remain.\n\nAre you sure?"
+    );
+    if (!ok) return;
+
+    saveJSON(LS_KEYS.teams, []);
+    saveJSON(LS_KEYS.results, []);
+
+    updateStats();
+
+    if (typeof refreshResultsTeamDropdowns === "function") {
+      refreshResultsTeamDropdowns();
+    }
+
+    alert("Event data cleared (teams and results).");
+  });
+}
