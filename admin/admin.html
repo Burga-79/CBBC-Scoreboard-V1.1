@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Comet Bay Bowling Club – Admin</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body class="theme-dark content-light">
+    <aside class="sidebar">
+      <div class="sidebar-inner">
+        <div class="sidebar-header">
+          <div class="sidebar-club">Comet Bay</div>
+          <div class="sidebar-sub">Bowling Club</div>
+        </div>
+        <nav class="sidebar-nav">
+          <button data-panel="dashboard" class="active">Dashboard</button>
+          <button data-panel="teams">Teams</button>
+          <button data-panel="results">Results</button>
+          <button data-panel="scoring">Scoring</button>
+          <button data-panel="sponsors">Sponsors</button>
+          <button data-panel="backgrounds">Backgrounds</button>
+          <button data-panel="settings">Settings</button>
+        </nav>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="main-header">
+        <div>
+          <h1>Scoreboard Control</h1>
+          <p>Manage ladder data, sponsors, backgrounds, and display appearance.</p>
+        </div>
+        <div class="main-header-badge">
+          <span class="badge-live">LIVE</span>
+          <span class="badge-sub">Display running on second screen</span>
+        </div>
+      </header>
+
+      <!-- DASHBOARD -->
+      <section id="panel-dashboard" class="panel active">
+        <div class="card">
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">Teams</div>
+              <div class="stat-value" id="statTeams">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Results Entered</div>
+              <div class="stat-value" id="statResults">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Active Sponsors</div>
+              <div class="stat-value" id="statSponsors">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Active Backgrounds</div>
+              <div class="stat-value" id="statBackgrounds">0</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="preview-card-header">
+            <h2>Display Preview</h2>
+            <div class="preview-controls">
+              <button id="previewRefreshBtn">Refresh now</button>
+              <span id="previewStatus">Auto-refresh every 15 seconds</span>
+            </div>
+          </div>
+          <div class="preview-container" id="previewContainer">
+            <div class="preview-frame-wrapper" id="previewFrameWrapper">
+              <iframe
+                id="previewFrame"
+                src="../display/display.html"
+                title="Scoreboard preview"
+              ></iframe>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TEAMS -->
+      <section id="panel-teams" class="panel">
+        <div class="card">
+          <h2>Teams</h2>
+          <p class="card-sub">
+            Placeholder only – wire this to your existing teams storage when ready.
+          </p>
+          <table class="table" id="teamsTable">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Division</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="teamsTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- RESULTS -->
+      <section id="panel-results" class="panel">
+        <div class="card">
+          <h2>Results</h2>
+          <p class="card-sub">
+            Placeholder only – paste your existing results UI here when you’re ready.
+          </p>
+          <div id="resultsContent"></div>
+        </div>
+      </section>
+
+      <!-- SCORING -->
+      <section id="panel-scoring" class="panel">
+        <div class="card">
+          <h2>Scoring Rules</h2>
+          <p class="card-sub">
+            Configure points and tiebreakers used to build the ladder.
+          </p>
+          <div class="form-row">
+            <label>
+              Win points
+              <input type="number" id="pointsWin" min="0" step="1" />
+            </label>
+            <label>
+              Draw points
+              <input type="number" id="pointsDraw" min="0" step="1" />
+            </label>
+            <label>
+              Loss points
+              <input type="number" id="pointsLoss" min="0" step="1" />
+            </label>
+          </div>
+          <div class="form-row">
+            <label class="inline-label">
+              <input type="checkbox" id="usePercentageTiebreak" />
+              Use percentage as tiebreaker
+            </label>
+            <label class="inline-label">
+              <input type="checkbox" id="autoDetermineWinner" />
+              Automatically determine winner
+            </label>
+          </div>
+          <button class="primary" id="saveScoringBtn">Save scoring settings</button>
+        </div>
+      </section>
+
+      <!-- SPONSORS -->
+      <section id="panel-sponsors" class="panel">
+        <div class="card">
+          <h2>Sponsors</h2>
+          <p class="card-sub">
+            Upload sponsor logos and choose which ones are shown in the bottom bar.
+          </p>
+          <div class="form-row">
+            <label>
+              Upload sponsor image
+              <input type="file" id="sponsorUploadInput" accept="image/*" />
+            </label>
+            <button class="primary" id="sponsorUploadBtn">Upload</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Sponsor list</h3>
+          <div class="thumb-list" id="sponsorList"></div>
+        </div>
+      </section>
+
+      <!-- BACKGROUNDS -->
+      <section id="panel-backgrounds" class="panel">
+        <div class="card">
+          <h2>Backgrounds</h2>
+          <p class="card-sub">
+            Upload background images and choose which ones are used behind the ladder.
+          </p>
+          <div class="form-row">
+            <label>
+              Upload background image
+              <input type="file" id="backgroundUploadInput" accept="image/*" />
+            </label>
+            <button class="primary" id="backgroundUploadBtn">Upload</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 class="card-title">Background gallery</h3>
+          <div class="bg-grid" id="backgroundGrid"></div>
+        </div>
+      </section>
+
+      <!-- SETTINGS -->
+      <section id="panel-settings" class="panel">
+        <div class="card">
+          <h2>Display Style</h2>
+          <p class="card-sub">
+            Choose how the scoreboard looks on the big screen.
+          </p>
+          <div class="settings-group">
+            <h3>Scoreboard style</h3>
+            <div class="settings-options">
+              <label>
+                <input
+                  type="radio"
+                  name="displayStyle"
+                  value="sport"
+                  checked
+                />
+                Sport broadcast (default)
+              </label>
+              <label>
+                <input type="radio" name="displayStyle" value="fluent" />
+                Fluent / Microsoft-style
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Admin Theme</h2>
+          <div class="settings-group">
+            <h3>Sidebar theme</h3>
+            <div class="settings-options">
+              <label>
+                <input type="radio" name="themeSelect" value="dark" />
+                Dark (default)
+              </label>
+              <label>
+                <input type="radio" name="themeSelect" value="accent-blue" />
+                Comet Bay Blue accent
+              </label>
+              <label>
+                <input type="radio" name="themeSelect" value="accent-green" />
+                Comet Bay Green accent
+              </label>
+              <label>
+                <input type="radio" name="themeSelect" value="accent-dual" />
+                Dual accent (Blue → Green)
+              </label>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3>Content theme</h3>
+            <div class="settings-options">
+              <label>
+                <input type="radio" name="contentTheme" value="light" />
+                Light content (default)
+              </label>
+              <label>
+                <input type="radio" name="contentTheme" value="dark" />
+                Dark content
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Club Logo</h2>
+          <div class="form-row">
+            <label>
+              Upload club logo
+              <input type="file" id="logoUploadInput" accept="image/*" />
+            </label>
+            <button class="primary" id="logoUploadBtn">Upload</button>
+          </div>
+          <div id="logoPreviewContainer" class="logo-preview-container">
+            <img
+              id="logoPreview"
+              src=""
+              alt="Club logo preview"
+              class="logo-preview"
+            />
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Event / Data</h2>
+          <p class="card-sub">
+            Reset local event data (teams, results, sponsors, backgrounds) if needed.
+          </p>
+          <button class="danger" id="resetEventBtn">Reset event data</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="script-admin.js"></script>
+  </body>
+</html>
