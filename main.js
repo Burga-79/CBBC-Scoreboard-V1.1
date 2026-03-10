@@ -1,12 +1,32 @@
 const { app, BrowserWindow, screen } = require("electron");
 const path = require("path");
-
-// Start Express server (uploads + images)
-require("./server");
+const { spawn } = require("child_process");
 
 let adminWindow;
 let displayWindow;
+let serverProcess = null;
 
+/* -------------------------------------------------------
+   START EXPRESS SERVER (works in dev + packaged EXE)
+------------------------------------------------------- */
+function startServer() {
+  // In dev: server.js is next to main.js
+  // In production: server.js is unpacked into resources folder
+  const serverPath = path.join(process.resourcesPath || __dirname, "server.js");
+
+  // Spawn background Node process using Electron's built‑in Node runtime
+  serverProcess = spawn(process.execPath, [serverPath], {
+    detached: true,
+    stdio: "ignore",
+    windowsHide: true
+  });
+
+  serverProcess.unref();
+}
+
+/* -------------------------------------------------------
+   CREATE WINDOWS
+------------------------------------------------------- */
 function createWindows() {
   const displays = screen.getAllDisplays();
   const primary = screen.getPrimaryDisplay();
@@ -42,7 +62,11 @@ function createWindows() {
   displayWindow.loadFile(path.join(__dirname, "display", "display.html"));
 }
 
+/* -------------------------------------------------------
+   APP READY
+------------------------------------------------------- */
 app.whenReady().then(() => {
+  startServer();   // <--- START SERVER AUTOMATICALLY
   createWindows();
 
   app.on("activate", () => {
@@ -50,6 +74,9 @@ app.whenReady().then(() => {
   });
 });
 
+/* -------------------------------------------------------
+   QUIT HANDLING
+------------------------------------------------------- */
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
