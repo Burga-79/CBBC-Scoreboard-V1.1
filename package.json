@@ -23,11 +23,6 @@
     "directories": {
       "output": "dist"
     },
-
-/* -------------------------------------------------------
-       FILES PACKED INTO ASAR
-       (server.js MUST NOT be here)
-------------------------------------------------------- */
     "files": [
       "admin/**/*",
       "display/**/*",
@@ -36,11 +31,6 @@
       "package.json",
       "node_modules/**/*"
     ],
-
-/* -------------------------------------------------------
-       FILES OUTSIDE ASAR (EXECUTABLE BY NODE)
-       server.js + images folder MUST be here
-------------------------------------------------------- */
     "extraResources": [
       {
         "from": "server.js",
@@ -51,7 +41,6 @@
         "to": "images"
       }
     ],
-
     "asar": true,
     "asarUnpack": []
   }
