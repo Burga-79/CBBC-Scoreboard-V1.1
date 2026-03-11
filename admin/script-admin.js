@@ -316,14 +316,18 @@ function setupResults() {
     return loadJSON(LS_KEYS.teams, []);
   }
 
-  function getResults() {
-    return loadJSON(LS_KEYS.results, []);
-  }
+  async function getResults() {
+  return await fetch(`${API_BASE}/data/results`).then(r => r.json());
+}
 
-  function setResults(results) {
-    saveJSON(LS_KEYS.results, results);
-    updateStats();
-  }
+  async function setResults(results) {
+  await fetch(`${API_BASE}/data/results`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(results)
+  });
+  updateStats();
+}
 
   function getScoring() {
     return loadJSON(LS_KEYS.scoring, {
