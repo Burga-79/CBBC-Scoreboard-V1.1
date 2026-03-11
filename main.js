@@ -1,6 +1,5 @@
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
-const { spawn } = require("child_process");
 
 let mainWindow;
 
@@ -10,12 +9,24 @@ if (!app.requestSingleInstanceLock()) {
   return;
 }
 
+/* -------------------------------------------------------
+   START SERVER (SAFE REQUIRE WITH ERROR LOGGING)
+------------------------------------------------------- */
 function startServer() {
   const serverPath = path.join(process.resourcesPath, "server.js");
   console.log("Requiring server from:", serverPath);
-  require(serverPath);
+
+  try {
+    require(serverPath);
+    console.log("SERVER: require() completed");
+  } catch (err) {
+    console.error("SERVER FAILED TO START:", err);
+  }
 }
 
+/* -------------------------------------------------------
+   CREATE MAIN WINDOW
+------------------------------------------------------- */
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
@@ -30,11 +41,17 @@ function createWindow() {
   mainWindow.loadFile("admin/admin.html");
 }
 
+/* -------------------------------------------------------
+   APP READY
+------------------------------------------------------- */
 app.whenReady().then(() => {
   startServer();
   createWindow();
 });
 
+/* -------------------------------------------------------
+   QUIT HANDLING
+------------------------------------------------------- */
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
