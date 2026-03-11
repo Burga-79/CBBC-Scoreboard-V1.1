@@ -1,3 +1,5 @@
+console.log("SERVER: Starting server.js");
+
 const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
@@ -11,6 +13,8 @@ const baseDir = process.resourcesPath
   ? path.join(process.resourcesPath)
   : path.join(__dirname);
 
+console.log("SERVER: baseDir =", baseDir);
+
 /* -------------------------------------------------------
    IMAGE FOLDERS (ALWAYS OUTSIDE ASAR)
 ------------------------------------------------------- */
@@ -22,16 +26,21 @@ const logoDir = path.join(imagesRoot, "logo");
 const sponsorDir = path.join(imagesRoot, "sponsors");
 const backgroundDir = path.join(imagesRoot, "backgrounds");
 
+console.log("SERVER: imagesRoot =", imagesRoot);
+
 /* -------------------------------------------------------
    ENSURE DIRECTORIES EXIST
 ------------------------------------------------------- */
 function ensureDir(dir) {
   try {
     if (!fs.existsSync(dir)) {
+      console.log("SERVER: Creating directory:", dir);
       fs.mkdirSync(dir, { recursive: true });
+    } else {
+      console.log("SERVER: Directory exists:", dir);
     }
   } catch (err) {
-    console.error("Failed to create directory:", dir, err);
+    console.error("SERVER: Failed to create directory:", dir, err);
   }
 }
 
@@ -48,6 +57,9 @@ ensureDir(dataDir);
 
 const teamsFile = path.join(dataDir, "teams.json");
 const resultsFile = path.join(dataDir, "results.json");
+
+console.log("SERVER: teamsFile =", teamsFile);
+console.log("SERVER: resultsFile =", resultsFile);
 
 app.get("/data/teams", (req, res) => {
   res.sendFile(teamsFile);
@@ -133,14 +145,16 @@ app.post("/upload/background", uploadBackground.single("file"), (req, res) => {
 /* -------------------------------------------------------
    START SERVER
 ------------------------------------------------------- */
+console.log("SERVER: About to listen on port 3000");
+
 app
   .listen(3000, () => {
-    console.log("Scoreboard server running on port 3000");
+    console.log("SERVER: Listening on port 3000");
   })
   .on("error", (err) => {
     if (err.code === "EADDRINUSE") {
-      console.log("Port 3000 already in use — server already running.");
+      console.log("SERVER: Port 3000 already in use — server already running.");
     } else {
-      console.error("Server error:", err);
+      console.error("SERVER: Server error:", err);
     }
   });
