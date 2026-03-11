@@ -20,27 +20,16 @@
   "build": {
     "appId": "com.cbbc.scoreboard",
     "productName": "Comet Bay Scoreboard",
-
     "directories": {
       "output": "dist"
     },
-
     "asar": true,
-
-    /* -------------------------------------------------------
-       UNPACK SERVER + DATA + IMAGES + NODE_MODULES
-       (THIS FIXES THE SERVER NOT STARTING IN THE EXE)
-    ------------------------------------------------------- */
     "asarUnpack": [
       "server.js",
       "data/**",
       "images/**",
       "node_modules/**"
     ],
-
-    /* -------------------------------------------------------
-       EXTRA RESOURCES (KEEPING YOUR ORIGINAL CONFIG)
-    ------------------------------------------------------- */
     "extraResources": [
       {
         "from": "server.js",
@@ -55,11 +44,6 @@
         "to": "images"
       }
     ],
-
-    /* -------------------------------------------------------
-       FILES INCLUDED IN THE APP
-       (ADDED MISSING ENTRIES: server.js, data, images)
-    ------------------------------------------------------- */
     "files": [
       "admin/**/*",
       "display/**/*",
