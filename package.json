@@ -27,12 +27,6 @@
 
     "asar": true,
 
-    "asarUnpack": [
-      "server.js",
-      "data/**/*",
-      "images/**/*"
-    ],
-
     "extraResources": [
       {
         "from": "server.js",
@@ -54,10 +48,7 @@
       "main.js",
       "preload.js",
       "package.json",
-      "node_modules/**/*",
-      "server.js",
-      "data/**/*",
-      "images/**/*"
+      "node_modules/**/*"
     ]
   }
 }
