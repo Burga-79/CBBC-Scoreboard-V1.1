@@ -15,6 +15,16 @@ function loadJSON(key, fallback) {
 }
 
 /* ------------------------------
+   LISTEN FOR ADMIN REFRESH SIGNAL
+------------------------------ */
+
+window.addEventListener("storage", (e) => {
+  if (e.key === "cbbcForceRefresh") {
+    window.location.reload();
+  }
+});
+
+/* ------------------------------
    SAFE FETCH (prevents display crashes)
 ------------------------------ */
 
