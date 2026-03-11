@@ -41,6 +41,33 @@ ensureDir(sponsorDir);
 ensureDir(backgroundDir);
 
 /* -------------------------------------------------------
+   DATA STORAGE (TEAMS + RESULTS)
+------------------------------------------------------- */
+const dataDir = path.join(baseDir, "data");
+ensureDir(dataDir);
+
+const teamsFile = path.join(dataDir, "teams.json");
+const resultsFile = path.join(dataDir, "results.json");
+
+app.get("/data/teams", (req, res) => {
+  res.sendFile(teamsFile);
+});
+
+app.post("/data/teams", express.json(), (req, res) => {
+  fs.writeFileSync(teamsFile, JSON.stringify(req.body, null, 2));
+  res.json({ ok: true });
+});
+
+app.get("/data/results", (req, res) => {
+  res.sendFile(resultsFile);
+});
+
+app.post("/data/results", express.json(), (req, res) => {
+  fs.writeFileSync(resultsFile, JSON.stringify(req.body, null, 2));
+  res.json({ ok: true });
+});
+
+/* -------------------------------------------------------
    STATIC FILES
 ------------------------------------------------------- */
 app.use("/images", express.static(imagesRoot));
