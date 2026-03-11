@@ -173,15 +173,19 @@ function setupTeams() {
   const tableBody = document.getElementById("teamsTableBody");
   const sortSelect = document.getElementById("teamsSortSelect");
 
-  function getTeams() {
-    return loadJSON(LS_KEYS.teams, []);
-  }
+  async function getTeams() {
+  return await fetch(`${API_BASE}/data/teams`).then(r => r.json());
+}
 
-  function setTeams(teams) {
-    saveJSON(LS_KEYS.teams, teams);
-    updateStats();
-    refreshResultsTeamDropdowns();
-  }
+  async function setTeams(teams) {
+  await fetch(`${API_BASE}/data/teams`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(teams)
+  });
+  updateStats();
+  refreshResultsTeamDropdowns();
+}
 
   function parseLeadingNumber(name) {
     const match = name.match(/^(\d+)/);
