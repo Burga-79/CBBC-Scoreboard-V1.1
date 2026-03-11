@@ -164,6 +164,21 @@ function setupPreview() {
 }
 
 /* ===============================
+   FORCE REFRESH DISPLAY
+=============================== */
+
+function setupForceRefreshDisplay() {
+  const btn = document.getElementById("forceRefreshDisplayBtn");
+  if (!btn) return;
+
+  btn.addEventListener("click", () => {
+    // Broadcast a refresh event to all display windows
+    localStorage.setItem("cbbcForceRefresh", Date.now().toString());
+    alert("Display refresh triggered.");
+  });
+}
+
+/* ===============================
    TEAMS
 =============================== */
 
