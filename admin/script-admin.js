@@ -222,9 +222,9 @@ function setupTeams() {
     }
 
     return teams.slice();
-  }
+}
 
-  async function renderTeams() {
+async function renderTeams() {
   const teams = await getTeams();
   const sorted = getSortedTeams(teams);
   tableBody.innerHTML = "";
@@ -283,22 +283,25 @@ function setupTeams() {
   });
 }
 
-  addBtn.addEventListener("click", () => {
-    const value = (nameInput.value || "").trim();
-    if (!value) return;
-    const teams = getTeams();
-    teams.push(value);
-    setTeams(teams);
-    nameInput.value = "";
-    sortSelect.value = "none";
-    renderTeams();
-  });
+addBtn.addEventListener("click", async () => {
+  const value = (nameInput.value || "").trim();
+  if (!value) return;
 
-  sortSelect.addEventListener("change", () => {
-    renderTeams();
-  });
+  const teams = await getTeams();
+  teams.push(value);
 
+  await setTeams(teams);
+
+  nameInput.value = "";
+  sortSelect.value = "none";
   renderTeams();
+});
+
+sortSelect.addEventListener("change", () => {
+  renderTeams();
+});
+
+renderTeams();
 }
 // ===============================
 //  script-admin.js (PART 2 / 5)
