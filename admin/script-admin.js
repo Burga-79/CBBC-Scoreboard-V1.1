@@ -367,8 +367,8 @@ function setupResults() {
     return "draw";
   }
 
-  function renderResults() {
-    const results = getResults();
+  async function renderResults() {
+  const results = await getResults();
     const sorted = results
       .slice()
       .sort(
