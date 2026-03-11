@@ -1,3 +1,7 @@
+const fs = require("fs");
+fs.writeFileSync("C:\\server-started.txt", "server.js reached top of file\n");
+console.log("SERVER: Starting server.js");
+
 console.log("SERVER: Starting server.js");
 
 const path = require("path");
