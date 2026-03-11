@@ -45,6 +45,7 @@
     "files": [
       "admin/**/*",
       "display/**/*",
+      "images/**/*",
       "main.js",
       "preload.js",
       "package.json",
