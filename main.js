@@ -1,106 +1,49 @@
-const { app, BrowserWindow, screen } = require("electron");
+const { app, BrowserWindow } = require("electron");
 const path = require("path");
 const { spawn } = require("child_process");
 
-let adminWindow;
-let displayWindow;
-let serverProcess = null;
+let mainWindow;
 
-/* -------------------------------------------------------
-   PREVENT MULTIPLE APP INSTANCES
-------------------------------------------------------- */
-const gotLock = app.requestSingleInstanceLock();
-
-if (!gotLock) {
+// Prevent double-launch
+if (!app.requestSingleInstanceLock()) {
   app.quit();
-  process.exit(0);
+  return;
 }
 
-/* -------------------------------------------------------
-   START EXPRESS SERVER (PACKAGED MODE, ONLY ONCE)
-------------------------------------------------------- */
-function startServerPackaged() {
-  if (serverProcess) return; // never start twice
-
-  // server.js is copied to: resources/server.js
+function startServer() {
+  // server.js will be unpacked into resourcesPath
   const serverPath = path.join(process.resourcesPath, "server.js");
 
-  serverProcess = spawn(process.execPath, [serverPath], {
-    env: {
-      ...process.env,
-      ELECTRON_RUN_AS_NODE: "1" // run as pure Node, not Electron
-    },
+  console.log("Starting server:", serverPath);
+
+  const server = spawn(process.execPath, [serverPath], {
+    cwd: process.resourcesPath,
     detached: true,
-    stdio: "ignore",
-    windowsHide: true
+    stdio: "ignore"
   });
 
-  serverProcess.unref();
+  server.unref();
 }
 
-/* -------------------------------------------------------
-   CREATE WINDOWS
-------------------------------------------------------- */
-function createWindows() {
-  const displays = screen.getAllDisplays();
-  const primary = screen.getPrimaryDisplay();
-  const external = displays.find((d) => d.id !== primary.id);
-  const targetDisplay = external || primary;
-
-  // ADMIN WINDOW
-  adminWindow = new BrowserWindow({
+function createWindow() {
+  mainWindow = new BrowserWindow({
     width: 1400,
     height: 900,
-    title: "Comet Bay – Admin",
     webPreferences: {
-      preload: path.join(__dirname, "preload.js")
+      preload: path.join(__dirname, "preload.js"),
+      nodeIntegration: false,
+      contextIsolation: true
     }
   });
 
-  adminWindow.loadFile(path.join(__dirname, "admin", "admin.html"));
-
-  // DISPLAY WINDOW
-  displayWindow = new BrowserWindow({
-    x: targetDisplay.bounds.x,
-    y: targetDisplay.bounds.y,
-    width: targetDisplay.size.width,
-    height: targetDisplay.size.height,
-    frame: false,
-    fullscreen: true,
-    title: "Comet Bay – Display",
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js")
-    }
-  });
-
-  displayWindow.loadFile(path.join(__dirname, "display", "display.html"));
+  mainWindow.loadFile("admin/admin.html");
 }
 
-/* -------------------------------------------------------
-   APP READY
-------------------------------------------------------- */
 app.whenReady().then(() => {
-  if (app.isPackaged) {
-    startServerPackaged();   // server starts ONCE
-  } else {
-    require("./server.js");  // dev mode
-  }
-
-  createWindows();
+  startServer();
+  createWindow();
 });
 
-/* -------------------------------------------------------
-   SECOND INSTANCE HANDLER
-------------------------------------------------------- */
-app.on("second-instance", () => {
-  if (adminWindow) {
-    adminWindow.focus();
-  }
-});
-
-/* -------------------------------------------------------
-   QUIT HANDLING
-------------------------------------------------------- */
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
