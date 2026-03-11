@@ -950,13 +950,13 @@ function setupStats() {
   const teamsCountEl = document.getElementById("statTeams");
   const resultsCountEl = document.getElementById("statResults");
 
-  window.updateStats = function () {
-    const teams = loadJSON(LS_KEYS.teams, []);
-    const results = loadJSON(LS_KEYS.results, []);
+  window.updateStats = async function () {
+  const teams = await fetch(`${API_BASE}/data/teams`).then(r => r.json()).catch(() => []);
+  const results = await fetch(`${API_BASE}/data/results`).then(r => r.json()).catch(() => []);
 
-    if (teamsCountEl) teamsCountEl.textContent = teams.length;
-    if (resultsCountEl) resultsCountEl.textContent = results.length;
-  };
+  if (teamsCountEl) teamsCountEl.textContent = teams.length;
+  if (resultsCountEl) resultsCountEl.textContent = results.length;
+};
 
   updateStats();
 }
