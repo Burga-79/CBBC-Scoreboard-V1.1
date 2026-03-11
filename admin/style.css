@@ -26,22 +26,11 @@ body.theme-dark {
   --sidebar-accent: transparent;
 }
 
-body.theme-accent-blue {
-  --sidebar-bg: #101018;
-  --sidebar-text: #ffffff;
-  --sidebar-accent: #00a8e8;
-}
-
-body.theme-accent-green {
-  --sidebar-bg: #101018;
-  --sidebar-text: #ffffff;
-  --sidebar-accent: #00c47a;
-}
-
+/* Dual accent: full gradient sidebar, no double width */
 body.theme-accent-dual {
-  --sidebar-bg: #101018;
-  --sidebar-text: #ffffff;
-  --sidebar-accent: linear-gradient(180deg, #00a8e8, #00c47a);
+  --sidebar-bg: linear-gradient(180deg, #00a8e8, #00c47a);
+  --sidebar-text: #000000;
+  --sidebar-accent: transparent;
 }
 
 body.content-light {
@@ -56,6 +45,37 @@ body.content-dark {
   --content-text: #f5f5f7;
   --card-bg: #151623;
   --card-border: #26283a;
+}
+
+/* -------------------------------
+   LIGHT CONTENT THEME FIXES
+--------------------------------*/
+body.content-light input,
+body.content-light select,
+body.content-light textarea {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #ccc !important;
+}
+
+body.content-light .panel {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+body.content-light table td,
+body.content-light table th {
+  color: #000000 !important;
+}
+
+body.content-light button.primary {
+  background: #0078d4 !important;
+  color: #ffffff !important;
+}
+
+body.content-light button.danger {
+  background: #d83b01 !important;
+  color: #ffffff !important;
 }
 
 /* GLOBAL */
@@ -103,19 +123,9 @@ body.theme-accent-green .sidebar {
   border-right: 4px solid #00c47a;
 }
 
+/* Dual accent: remove border, use full gradient */
 body.theme-accent-dual .sidebar {
-  border-right: 4px solid transparent;
-  position: relative;
-}
-
-body.theme-accent-dual .sidebar::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
-  background: linear-gradient(180deg, #00a8e8, #00c47a);
+  border-right: none;
 }
 
 .sidebar-inner {
@@ -139,6 +149,10 @@ body.theme-accent-dual .sidebar::before {
 .sidebar-sub {
   font-size: 12px;
   opacity: 0.8;
+}
+
+body.theme-accent-dual .sidebar-sub {
+  opacity: 0.9;
 }
 
 .sidebar-nav {
@@ -254,6 +268,27 @@ body.theme-accent-dual .sidebar::before {
 .card-title {
   margin-top: 0;
   font-size: 15px;
+}
+
+/* PANEL HEADER ROW */
+
+.panel-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.sort-controls {
+  font-size: 13px;
+}
+
+.sort-controls select {
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid var(--card-border);
+  background: var(--card-bg);
+  color: var(--content-text);
 }
 
 /* DASHBOARD STATS */
@@ -546,6 +581,26 @@ button.danger {
 .table th {
   background: rgba(255, 255, 255, 0.03);
   text-align: left;
+}
+
+/* --- PREVIEW FIX: prevent iframe blocking clicks --- */
+
+#previewContainer,
+#previewFrameWrapper,
+#previewFrame {
+  pointer-events: none;   /* iframe cannot intercept clicks */
+  z-index: 0;             /* sits behind everything */
+}
+
+.panel {
+  position: relative;
+  z-index: 1;
+  pointer-events: none;   /* inactive panels cannot be clicked */
+}
+
+.panel.active {
+  z-index: 10;            /* active panel sits above preview */
+  pointer-events: auto;   /* fully interactive */
 }
 
 /* RESPONSIVE */

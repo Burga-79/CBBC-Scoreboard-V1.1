@@ -1,60 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Comet Bay Bowling Club – Scoreboard</title>
-    <link rel="stylesheet" href="style.css" />
-  </head>
-  <body class="display-body style-sport">
-    <div class="background-layer">
-      <div id="backgroundImage" class="background-image"></div>
-      <div id="backgroundOverlay" class="background-overlay"></div>
+<head>
+  <meta charset="UTF-8" />
+  <title>CBBC Display</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body class="display-body">
+
+  <!-- BACKGROUND LAYER -->
+  <div class="background-layer">
+    <div id="backgroundImage" class="background-image"></div>
+    <div class="background-overlay"></div>
+  </div>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-left">
+      <div class="club-name">Comet Bay Bowling Club</div>
+      <div class="header-subtitle">Live Scoreboard</div>
     </div>
 
-    <header class="header">
-      <div class="header-left">
-        <div class="club-name">Comet Bay Bowling Club</div>
-        <div class="header-subtitle">Live Ladder & Results</div>
-      </div>
-      <div class="club-logo">
-        <img id="clubLogo" src="" alt="Club Logo" />
-      </div>
-    </header>
+    <div class="club-logo">
+      <img id="clubLogoImg" alt="Club Logo" />
+    </div>
+  </header>
 
-    <main class="main">
-      <section class="ladder-section">
-        <h2>Ladder</h2>
-        <table id="ladderTable">
-          <thead>
-            <tr>
-              <th>Pos</th>
-              <th>Team / Skipper</th>
-              <th>GP</th>
-              <th>W</th>
-              <th>D</th>
-              <th>L</th>
-              <th>SF</th>
-              <th>SA</th>
-              <th>SD</th>
-              <th>%</th>
-              <th>Pts</th>
-            </tr>
-          </thead>
-          <tbody></tbody>
-        </table>
-      </section>
+  <!-- MAIN CONTENT -->
+  <main class="main">
 
-      <section class="results-section">
-        <h2>Recent Results</h2>
-        <div id="resultsList"></div>
-      </section>
-    </main>
+    <!-- LADDER -->
+    <section class="ladder-section">
+      <h2>Ladder</h2>
+      <table id="ladderTable">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Team</th>
+            <th>P</th>
+            <th>W</th>
+            <th>D</th>
+            <th>L</th>
+            <th>F</th>
+            <th>A</th>
+            <th>Pts</th>
+            <th>%</th>
+          </tr>
+        </thead>
+        <tbody id="ladderBody"></tbody>
+      </table>
+    </section>
 
-    <footer class="footer">
-      <div class="sponsors-label">Proudly supported by</div>
-      <div class="sponsors-carousel" id="sponsorsBar"></div>
-    </footer>
+    <!-- RESULTS -->
+    <section class="results-section">
+      <h2>Recent Results</h2>
+      <div id="resultsList"></div>
+    </section>
 
-    <script src="script-display.js"></script>
-  </body>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="sponsors-label">Sponsors</div>
+    <div id="sponsorsBar" class="sponsors-carousel"></div>
+  </footer>
+
+  <script src="script-display.js"></script>
+</body>
 </html>

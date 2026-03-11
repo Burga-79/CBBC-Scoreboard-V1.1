@@ -1,29 +1,50 @@
+const fs = require("fs");
+fs.writeFileSync("C:\\server-started.txt", "server.js reached top of file\n");
+console.log("SERVER: Starting server.js");
+
+console.log("SERVER: Starting server.js");
+
 const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
 const express = require("express");
 const app = express();
 
-// In production, process.resourcesPath points to the app's resources folder.
-// In dev, fall back to __dirname.
-const baseDir = process.resourcesPath || __dirname;
+/* -------------------------------------------------------
+   RESOURCES PATH (PACKAGED OR DEV)
+------------------------------------------------------- */
+const baseDir = process.resourcesPath
+  ? path.join(process.resourcesPath)
+  : path.join(__dirname);
 
-// Images root folder OUTSIDE the ASAR (extraResources in electron-builder)
-const imagesRoot = path.join(baseDir, "images");
+console.log("SERVER: baseDir =", baseDir);
 
-// Subfolders
+/* -------------------------------------------------------
+   IMAGE FOLDERS (ALWAYS OUTSIDE ASAR)
+------------------------------------------------------- */
+const imagesRoot = process.resourcesPath
+  ? path.join(process.resourcesPath, "images")
+  : path.join(__dirname, "images");
+
 const logoDir = path.join(imagesRoot, "logo");
 const sponsorDir = path.join(imagesRoot, "sponsors");
 const backgroundDir = path.join(imagesRoot, "backgrounds");
 
-// Ensure folders exist
+console.log("SERVER: imagesRoot =", imagesRoot);
+
+/* -------------------------------------------------------
+   ENSURE DIRECTORIES EXIST
+------------------------------------------------------- */
 function ensureDir(dir) {
   try {
     if (!fs.existsSync(dir)) {
+      console.log("SERVER: Creating directory:", dir);
       fs.mkdirSync(dir, { recursive: true });
+    } else {
+      console.log("SERVER: Directory exists:", dir);
     }
   } catch (err) {
-    console.error("Failed to create directory:", dir, err);
+    console.error("SERVER: Failed to create directory:", dir, err);
   }
 }
 
@@ -32,10 +53,44 @@ ensureDir(logoDir);
 ensureDir(sponsorDir);
 ensureDir(backgroundDir);
 
-// Serve images
+/* -------------------------------------------------------
+   DATA STORAGE (TEAMS + RESULTS)
+------------------------------------------------------- */
+const dataDir = path.join(baseDir, "data");
+ensureDir(dataDir);
+
+const teamsFile = path.join(dataDir, "teams.json");
+const resultsFile = path.join(dataDir, "results.json");
+
+console.log("SERVER: teamsFile =", teamsFile);
+console.log("SERVER: resultsFile =", resultsFile);
+
+app.get("/data/teams", (req, res) => {
+  res.sendFile(teamsFile);
+});
+
+app.post("/data/teams", express.json(), (req, res) => {
+  fs.writeFileSync(teamsFile, JSON.stringify(req.body, null, 2));
+  res.json({ ok: true });
+});
+
+app.get("/data/results", (req, res) => {
+  res.sendFile(resultsFile);
+});
+
+app.post("/data/results", express.json(), (req, res) => {
+  fs.writeFileSync(resultsFile, JSON.stringify(req.body, null, 2));
+  res.json({ ok: true });
+});
+
+/* -------------------------------------------------------
+   STATIC FILES
+------------------------------------------------------- */
 app.use("/images", express.static(imagesRoot));
 
-// Multer storage factory
+/* -------------------------------------------------------
+   MULTER STORAGE
+------------------------------------------------------- */
 function makeStorage(targetDir) {
   return multer.diskStorage({
     destination: function (req, file, cb) {
@@ -55,42 +110,55 @@ const uploadLogo = multer({ storage: makeStorage(logoDir) });
 const uploadSponsor = multer({ storage: makeStorage(sponsorDir) });
 const uploadBackground = multer({ storage: makeStorage(backgroundDir) });
 
-// LOGO UPLOAD
+/* -------------------------------------------------------
+   LOGO UPLOAD
+------------------------------------------------------- */
 app.post("/upload/logo", uploadLogo.single("file"), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
   res.json({
     filename: req.file.filename,
     url: `/images/logo/${req.file.filename}`
   });
 });
 
-// SPONSOR UPLOAD
+/* -------------------------------------------------------
+   SPONSOR UPLOAD
+------------------------------------------------------- */
 app.post("/upload/sponsor", uploadSponsor.single("file"), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
   res.json({
     filename: req.file.filename,
     url: `/images/sponsors/${req.file.filename}`
   });
 });
 
-// BACKGROUND UPLOAD
+/* -------------------------------------------------------
+   BACKGROUND UPLOAD
+------------------------------------------------------- */
 app.post("/upload/background", uploadBackground.single("file"), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+
   res.json({
     filename: req.file.filename,
     url: `/images/backgrounds/${req.file.filename}`
   });
 });
 
-// Prevent "already running" crash
+/* -------------------------------------------------------
+   START SERVER
+------------------------------------------------------- */
+console.log("SERVER: About to listen on port 3000");
+
 app
   .listen(3000, () => {
-    console.log("Scoreboard server running on port 3000");
+    console.log("SERVER: Listening on port 3000");
   })
   .on("error", (err) => {
     if (err.code === "EADDRINUSE") {
-      console.log("Port 3000 already in use — server already running.");
+      console.log("SERVER: Port 3000 already in use — server already running.");
     } else {
-      console.error("Server error:", err);
+      console.error("SERVER: Server error:", err);
     }
   });
