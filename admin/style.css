@@ -47,6 +47,37 @@ body.content-dark {
   --card-border: #26283a;
 }
 
+/* -------------------------------
+   LIGHT CONTENT THEME FIXES
+--------------------------------*/
+body.content-light input,
+body.content-light select,
+body.content-light textarea {
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 1px solid #ccc !important;
+}
+
+body.content-light .panel {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+body.content-light table td,
+body.content-light table th {
+  color: #000000 !important;
+}
+
+body.content-light button.primary {
+  background: #0078d4 !important;
+  color: #ffffff !important;
+}
+
+body.content-light button.danger {
+  background: #d83b01 !important;
+  color: #ffffff !important;
+}
+
 /* GLOBAL */
 
 *,
