@@ -7,12 +7,17 @@ const app = express();
 /* -------------------------------------------------------
    RESOURCES PATH (PACKAGED OR DEV)
 ------------------------------------------------------- */
-const baseDir = process.resourcesPath || __dirname;
+const baseDir = process.resourcesPath
+  ? path.join(process.resourcesPath)
+  : path.join(__dirname);
 
 /* -------------------------------------------------------
-   IMAGE FOLDERS (OUTSIDE ASAR)
+   IMAGE FOLDERS (ALWAYS OUTSIDE ASAR)
 ------------------------------------------------------- */
-const imagesRoot = path.join(baseDir, "images");
+const imagesRoot = process.resourcesPath
+  ? path.join(process.resourcesPath, "images")
+  : path.join(__dirname, "images");
+
 const logoDir = path.join(imagesRoot, "logo");
 const sponsorDir = path.join(imagesRoot, "sponsors");
 const backgroundDir = path.join(imagesRoot, "backgrounds");
