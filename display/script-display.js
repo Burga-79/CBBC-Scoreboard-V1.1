@@ -15,6 +15,20 @@ function loadJSON(key, fallback) {
 }
 
 /* ------------------------------
+   SAFE FETCH (prevents display crashes)
+------------------------------ */
+
+async function safeFetchJSON(url, fallback) {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("Bad response");
+    return await res.json();
+  } catch {
+    return fallback;
+  }
+}
+
+/* ------------------------------
    GLOBAL STATE
 ------------------------------ */
 
@@ -98,13 +112,11 @@ function startSponsorScroll() {
     const firstRect = first.getBoundingClientRect();
     const barRect = bar.getBoundingClientRect();
 
-    // Loop first logo to end
     if (firstRect.right < barRect.left) {
       bar.appendChild(first);
       sponsorScrollPos += firstRect.width + 32;
     }
 
-    // Spotlight center sponsor
     const centerX = barRect.left + barRect.width / 2;
 
     logos.forEach((logo) => {
@@ -159,12 +171,8 @@ function startBackgroundRotation() {
 ------------------------------ */
 
 async function computeLadder() {
-  const teams = await fetch("http://localhost:3000/data/teams").then((r) =>
-    r.json()
-  );
-  const results = await fetch("http://localhost:3000/data/results").then((r) =>
-    r.json()
-  );
+  const teams = await safeFetchJSON("http://localhost:3000/data/teams", []);
+  const results = await safeFetchJSON("http://localhost:3000/data/results", []);
   const scoring = loadJSON("cbbcScoring", {
     win: 4,
     draw: 2,
@@ -271,9 +279,7 @@ async function renderLadder() {
 ------------------------------ */
 
 async function renderResults() {
-  const results = await fetch("http://localhost:3000/data/results").then((r) =>
-    r.json()
-  );
+  const results = await safeFetchJSON("http://localhost:3000/data/results", []);
   const body = document.getElementById("resultsList");
   if (!body) return;
 
