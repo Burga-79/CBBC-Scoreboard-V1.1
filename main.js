@@ -1,5 +1,6 @@
 const { app, BrowserWindow } = require("electron");
 const path = require("path");
+const fs = require("fs");
 
 let mainWindow;
 
@@ -9,18 +10,16 @@ if (!app.requestSingleInstanceLock()) {
   return;
 }
 
-/* -------------------------------------------------------
-   START SERVER (SAFE REQUIRE WITH ERROR LOGGING)
-------------------------------------------------------- */
 function startServer() {
-  const resources = process.resourcesPath;
-  const serverPath = path.join(resources, "server.js");
+  const unpacked = path.join(process.resourcesPath, "app.asar.unpacked");
+  const serverPath = path.join(unpacked, "server.js");
 
-  console.log("DEBUG: process.resourcesPath =", resources);
+  console.log("DEBUG: process.resourcesPath =", process.resourcesPath);
+  console.log("DEBUG: unpacked =", unpacked);
   console.log("DEBUG: serverPath =", serverPath);
 
   try {
-    if (!require("fs").existsSync(serverPath)) {
+    if (!fs.existsSync(serverPath)) {
       console.error("DEBUG: server.js NOT FOUND at:", serverPath);
       return;
     }
@@ -32,9 +31,6 @@ function startServer() {
   }
 }
 
-/* -------------------------------------------------------
-   CREATE MAIN WINDOW
-------------------------------------------------------- */
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1400,
@@ -49,17 +45,11 @@ function createWindow() {
   mainWindow.loadFile("admin/admin.html");
 }
 
-/* -------------------------------------------------------
-   APP READY
-------------------------------------------------------- */
 app.whenReady().then(() => {
   startServer();
   createWindow();
 });
 
-/* -------------------------------------------------------
-   QUIT HANDLING
-------------------------------------------------------- */
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
