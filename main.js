@@ -11,18 +11,9 @@ if (!app.requestSingleInstanceLock()) {
 }
 
 function startServer() {
-  // server.js will be unpacked into resourcesPath
   const serverPath = path.join(process.resourcesPath, "server.js");
-
-  console.log("Starting server:", serverPath);
-
-  const server = spawn(process.execPath, [serverPath], {
-    cwd: process.resourcesPath,
-    detached: true,
-    stdio: "ignore"
-  });
-
-  server.unref();
+  console.log("Requiring server from:", serverPath);
+  require(serverPath);
 }
 
 function createWindow() {
