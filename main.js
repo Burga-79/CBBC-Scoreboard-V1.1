@@ -13,14 +13,22 @@ if (!app.requestSingleInstanceLock()) {
    START SERVER (SAFE REQUIRE WITH ERROR LOGGING)
 ------------------------------------------------------- */
 function startServer() {
-  const serverPath = path.join(process.resourcesPath, "server.js");
-  console.log("Requiring server from:", serverPath);
+  const resources = process.resourcesPath;
+  console.log("DEBUG: process.resourcesPath =", resources);
+
+  const serverPath = path.join(resources, "server.js");
+  console.log("DEBUG: Attempting to load server from:", serverPath);
 
   try {
+    if (!require("fs").existsSync(serverPath)) {
+      console.error("DEBUG: server.js NOT FOUND at:", serverPath);
+      return;
+    }
+
     require(serverPath);
-    console.log("SERVER: require() completed");
+    console.log("DEBUG: server.js loaded successfully");
   } catch (err) {
-    console.error("SERVER FAILED TO START:", err);
+    console.error("DEBUG: server.js failed to load:", err);
   }
 }
 
