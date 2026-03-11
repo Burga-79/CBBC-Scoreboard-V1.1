@@ -1,55 +1,65 @@
-const { app, BrowserWindow, screen } = require("electron");
+const { app, BrowserWindow } = require("electron");
 const path = require("path");
 
-// Start Express server (uploads + images)
-require("./server");
+let mainWindow;
 
-let adminWindow;
-let displayWindow;
-
-function createWindows() {
-  const displays = screen.getAllDisplays();
-  const primary = screen.getPrimaryDisplay();
-  const external = displays.find((d) => d.id !== primary.id);
-  const targetDisplay = external || primary;
-
-  // ADMIN WINDOW
-  adminWindow = new BrowserWindow({
-    width: 1400,
-    height: 900,
-    title: "Comet Bay – Admin",
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js")
-    }
-  });
-
-  adminWindow.loadFile(path.join(__dirname, "admin", "admin.html"));
-
-  // DISPLAY WINDOW
-  displayWindow = new BrowserWindow({
-    x: targetDisplay.bounds.x,
-    y: targetDisplay.bounds.y,
-    width: targetDisplay.size.width,
-    height: targetDisplay.size.height,
-    frame: false,
-    fullscreen: true,
-    title: "Comet Bay – Display",
-    webPreferences: {
-      preload: path.join(__dirname, "preload.js")
-    }
-  });
-
-  displayWindow.loadFile(path.join(__dirname, "display", "display.html"));
+// Prevent double-launch
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+  return;
 }
 
-app.whenReady().then(() => {
-  createWindows();
+/* -------------------------------------------------------
+   START SERVER (SAFE REQUIRE WITH ERROR LOGGING)
+------------------------------------------------------- */
+function startServer() {
+  const resources = process.resourcesPath;
+  const serverPath = path.join(resources, "server.js");
 
-  app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindows();
+  console.log("DEBUG: process.resourcesPath =", resources);
+  console.log("DEBUG: serverPath =", serverPath);
+
+  try {
+    if (!require("fs").existsSync(serverPath)) {
+      console.error("DEBUG: server.js NOT FOUND at:", serverPath);
+      return;
+    }
+
+    require(serverPath);
+    console.log("DEBUG: server.js loaded successfully");
+  } catch (err) {
+    console.error("DEBUG: server.js failed to load:", err);
+  }
+}
+
+/* -------------------------------------------------------
+   CREATE MAIN WINDOW
+------------------------------------------------------- */
+function createWindow() {
+  mainWindow = new BrowserWindow({
+    width: 1400,
+    height: 900,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+      nodeIntegration: false,
+      contextIsolation: true
+    }
   });
+
+  mainWindow.loadFile("admin/admin.html");
+}
+
+/* -------------------------------------------------------
+   APP READY
+------------------------------------------------------- */
+app.whenReady().then(() => {
+  startServer();
+  createWindow();
 });
 
+/* -------------------------------------------------------
+   QUIT HANDLING
+------------------------------------------------------- */
 app.on("window-all-closed", () => {
   if (process.platform !== "darwin") app.quit();
 });
