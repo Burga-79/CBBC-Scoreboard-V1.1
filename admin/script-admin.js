@@ -224,61 +224,64 @@ function setupTeams() {
     return teams.slice();
   }
 
-  function renderTeams() {
-    const teams = getTeams();
-    const sorted = getSortedTeams(teams);
-    tableBody.innerHTML = "";
+  async function renderTeams() {
+  const teams = await getTeams();
+  const sorted = getSortedTeams(teams);
+  tableBody.innerHTML = "";
 
-    sorted.forEach((teamName, index) => {
-      const tr = document.createElement("tr");
+  sorted.forEach((teamName, index) => {
+    const tr = document.createElement("tr");
 
-      const idxTd = document.createElement("td");
-      idxTd.textContent = index + 1;
+    const idxTd = document.createElement("td");
+    idxTd.textContent = index + 1;
 
-      const nameTd = document.createElement("td");
-      nameTd.textContent = teamName;
+    const nameTd = document.createElement("td");
+    nameTd.textContent = teamName;
 
-      const actionsTd = document.createElement("td");
+    const actionsTd = document.createElement("td");
 
-      const editBtn = document.createElement("button");
-      editBtn.className = "primary";
-      editBtn.textContent = "Edit";
-      editBtn.style.marginRight = "4px";
+    const editBtn = document.createElement("button");
+    editBtn.className = "primary";
+    editBtn.textContent = "Edit";
+    editBtn.style.marginRight = "4px";
 
-      const deleteBtn = document.createElement("button");
-      deleteBtn.className = "danger";
-      deleteBtn.textContent = "Delete";
+    const deleteBtn = document.createElement("button");
+    deleteBtn.className = "danger";
+    deleteBtn.textContent = "Delete";
 
-      editBtn.addEventListener("click", () => {
-        const newName = prompt("Edit team name / skipper:", teamName);
-        if (!newName) return;
-        const allTeams = getTeams();
-        const originalIndex = allTeams.indexOf(teamName);
-        if (originalIndex >= 0) {
-          allTeams[originalIndex] = newName.trim();
-          setTeams(allTeams);
-          renderTeams();
-        }
-      });
+    editBtn.addEventListener("click", async () => {
+      const newName = prompt("Edit team name / skipper:", teamName);
+      if (!newName) return;
 
-      deleteBtn.addEventListener("click", () => {
-        const ok = confirm(`Delete team "${teamName}"?`);
-        if (!ok) return;
-        const allTeams = getTeams().filter((t) => t !== teamName);
-        setTeams(allTeams);
+      const allTeams = await getTeams();
+      const originalIndex = allTeams.indexOf(teamName);
+
+      if (originalIndex >= 0) {
+        allTeams[originalIndex] = newName.trim();
+        await setTeams(allTeams);
         renderTeams();
-      });
-
-      actionsTd.appendChild(editBtn);
-      actionsTd.appendChild(deleteBtn);
-
-      tr.appendChild(idxTd);
-      tr.appendChild(nameTd);
-      tr.appendChild(actionsTd);
-
-      tableBody.appendChild(tr);
+      }
     });
-  }
+
+    deleteBtn.addEventListener("click", async () => {
+      const ok = confirm(`Delete team "${teamName}"?`);
+      if (!ok) return;
+
+      const allTeams = (await getTeams()).filter(t => t !== teamName);
+      await setTeams(allTeams);
+      renderTeams();
+    });
+
+    actionsTd.appendChild(editBtn);
+    actionsTd.appendChild(deleteBtn);
+
+    tr.appendChild(idxTd);
+    tr.appendChild(nameTd);
+    tr.appendChild(actionsTd);
+
+    tableBody.appendChild(tr);
+  });
+}
 
   addBtn.addEventListener("click", () => {
     const value = (nameInput.value || "").trim();
