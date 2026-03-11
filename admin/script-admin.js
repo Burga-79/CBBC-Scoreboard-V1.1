@@ -959,26 +959,31 @@ function setupReset() {
   const resetBtn = document.getElementById("resetEventBtn");
   if (!resetBtn) return;
 
-  resetBtn.addEventListener("click", () => {
-    const ok = confirm(
-      "This will clear ALL teams and ALL results.\n" +
-        "Sponsors, backgrounds, logo, and settings will remain.\n\n" +
-        "Are you sure?"
-    );
-    if (!ok) return;
+  resetBtn.addEventListener("click", async () => {
+  const ok = confirm(
+    "This will clear ALL teams and ALL results.\n" +
+      "Sponsors, backgrounds, logo, and settings will remain.\n\n" +
+      "Are you sure?"
+  );
+  if (!ok) return;
 
-    // Clear only teams + results
-    saveJSON(LS_KEYS.teams, []);
-    saveJSON(LS_KEYS.results, []);
-
-    // Refresh stats
-    updateStats();
-
-    // Refresh results team dropdowns if available
-    if (typeof refreshResultsTeamDropdowns === "function") {
-      refreshResultsTeamDropdowns();
-    }
-
-    alert("Event data cleared (teams and results).");
+  await fetch(`${API_BASE}/data/teams`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify([])
   });
+
+  await fetch(`${API_BASE}/data/results`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify([])
+  });
+
+  updateStats();
+  if (typeof refreshResultsTeamDropdowns === "function") {
+    refreshResultsTeamDropdowns();
+  }
+
+  alert("Event data cleared (teams and results).");
+});
 }
