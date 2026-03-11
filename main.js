@@ -14,10 +14,10 @@ if (!app.requestSingleInstanceLock()) {
 ------------------------------------------------------- */
 function startServer() {
   const resources = process.resourcesPath;
-  console.log("DEBUG: process.resourcesPath =", resources);
-
   const serverPath = path.join(resources, "server.js");
-  console.log("DEBUG: Attempting to load server from:", serverPath);
+
+  console.log("DEBUG: process.resourcesPath =", resources);
+  console.log("DEBUG: serverPath =", serverPath);
 
   try {
     if (!require("fs").existsSync(serverPath)) {
