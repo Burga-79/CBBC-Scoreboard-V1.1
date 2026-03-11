@@ -298,3 +298,11 @@ function renderResults() {
     body.appendChild(div);
   });
 }
+
+/* -------------------------------------------
+   AUTO‑REFRESH DISPLAY EVERY 10 SECONDS
+------------------------------------------- */
+setInterval(() => {
+  window.location.reload();
+}, 10000);
+
