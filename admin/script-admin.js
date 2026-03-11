@@ -37,6 +37,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupNavigation();
   setupThemes();
   setupPreview();
+  setupForceRefreshDisplay();
   setupTeams();
   setupResults();
   setupSponsors();
