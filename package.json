@@ -20,40 +20,22 @@
   "build": {
     "appId": "com.cbbc.scoreboard",
     "productName": "Comet Bay Scoreboard",
+
     "directories": {
       "output": "dist"
     },
+
     "asar": true,
+
     "asarUnpack": [
       "server.js",
       "data/**",
       "images/**",
       "node_modules/**"
     ],
-    "extraResources": [
-      {
-        "from": "server.js",
-        "to": "server.js"
-      },
-      {
-        "from": "data",
-        "to": "data"
-      },
-      {
-        "from": "images",
-        "to": "images"
-      }
-    ],
+
     "files": [
-      "admin/**/*",
-      "display/**/*",
-      "main.js",
-      "preload.js",
-      "package.json",
-      "server.js",
-      "data/**/*",
-      "images/**/*",
-      "node_modules/**/*"
+      "**/*"
     ]
   }
 }
