@@ -158,9 +158,13 @@ function startBackgroundRotation() {
    LADDER CALCULATION
 ------------------------------ */
 
-function computeLadder() {
-  const teams = loadJSON("cbbcTeams", []);
-  const results = loadJSON("cbbcResults", []);
+async function computeLadder() {
+  const teams = await fetch("http://localhost:3000/data/teams").then((r) =>
+    r.json()
+  );
+  const results = await fetch("http://localhost:3000/data/results").then((r) =>
+    r.json()
+  );
   const scoring = loadJSON("cbbcScoring", {
     win: 4,
     draw: 2,
@@ -235,8 +239,8 @@ function computeLadder() {
    RENDER LADDER
 ------------------------------ */
 
-function renderLadder() {
-  const ladder = computeLadder();
+async function renderLadder() {
+  const ladder = await computeLadder();
   const body = document.getElementById("ladderBody");
   if (!body) return;
 
@@ -266,8 +270,10 @@ function renderLadder() {
    RENDER RESULTS LIST
 ------------------------------ */
 
-function renderResults() {
-  const results = loadJSON("cbbcResults", []);
+async function renderResults() {
+  const results = await fetch("http://localhost:3000/data/results").then((r) =>
+    r.json()
+  );
   const body = document.getElementById("resultsList");
   if (!body) return;
 
@@ -305,4 +311,3 @@ function renderResults() {
 setInterval(() => {
   window.location.reload();
 }, 10000);
-
