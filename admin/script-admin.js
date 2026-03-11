@@ -318,22 +318,22 @@ function setupResults() {
   const addBtn = document.getElementById("addResultBtn");
   const tableBody = document.getElementById("resultsTableBody");
 
-  function getTeams() {
-    return loadJSON(LS_KEYS.teams, []);
+  async function getTeams() {
+    return await fetch(`${API_BASE}/data/teams`).then(r => r.json());
   }
 
   async function getResults() {
-  return await fetch(`${API_BASE}/data/results`).then(r => r.json());
-}
+    return await fetch(`${API_BASE}/data/results`).then(r => r.json());
+  }
 
   async function setResults(results) {
-  await fetch(`${API_BASE}/data/results`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(results)
-  });
-  updateStats();
-}
+    await fetch(`${API_BASE}/data/results`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(results)
+    });
+    updateStats();
+  }
 
   function getScoring() {
     return loadJSON(LS_KEYS.scoring, {
@@ -345,8 +345,8 @@ function setupResults() {
     });
   }
 
-  function refreshTeamDropdowns() {
-    const teams = getTeams();
+  async function refreshTeamDropdowns() {
+    const teams = await getTeams();
     [team1Select, team2Select].forEach((select) => {
       select.innerHTML = "";
       const placeholder = document.createElement("option");
@@ -363,7 +363,6 @@ function setupResults() {
     });
   }
 
-  // Expose globally so Teams panel can refresh dropdowns
   window.refreshResultsTeamDropdowns = refreshTeamDropdowns;
 
   function computeResultOutcome(shots1, shots2, scoring) {
@@ -374,7 +373,7 @@ function setupResults() {
   }
 
   async function renderResults() {
-  const results = await getResults();
+    const results = await getResults();
     const sorted = results
       .slice()
       .sort(
@@ -414,7 +413,7 @@ function setupResults() {
       deleteBtn.className = "danger";
       deleteBtn.textContent = "Delete";
 
-      editBtn.addEventListener("click", () => {
+      editBtn.addEventListener("click", async () => {
         const newRound = prompt("Round:", r.round ?? "");
         if (newRound === null) return;
 
@@ -430,6 +429,7 @@ function setupResults() {
         const roundVal = Number(newRound) || 0;
         const s1 = Number(newShots1);
         const s2 = Number(newShots2);
+
         if (isNaN(s1) || isNaN(s2) || s1 < 0 || s2 < 0) {
           alert("Invalid scores.");
           return;
@@ -438,13 +438,14 @@ function setupResults() {
         const scoring = getScoring();
         const outcome = computeResultOutcome(s1, s2, scoring);
 
-        const all = getResults();
+        const all = await getResults();
         const originalIndex = all.findIndex(
           (x) =>
             x.team1 === r.team1 &&
             x.team2 === r.team2 &&
             x.timestamp === r.timestamp
         );
+
         if (originalIndex >= 0) {
           all[originalIndex] = {
             ...all[originalIndex],
@@ -454,17 +455,19 @@ function setupResults() {
             shots2: s2,
             result: outcome ?? all[originalIndex].result
           };
-          setResults(all);
+
+          await setResults(all);
           renderResults();
         }
       });
 
-      deleteBtn.addEventListener("click", () => {
+      deleteBtn.addEventListener("click", async () => {
         const ok = confirm(
           `Delete result: ${r.team1} ${r.shots1} - ${r.shots2} ${r.team2}?`
         );
         if (!ok) return;
-        const all = getResults().filter(
+
+        const all = (await getResults()).filter(
           (x) =>
             !(
               x.team1 === r.team1 &&
@@ -476,7 +479,8 @@ function setupResults() {
               x.timestamp === r.timestamp
             )
         );
-        setResults(all);
+
+        await setResults(all);
         renderResults();
       });
 
@@ -494,7 +498,7 @@ function setupResults() {
     });
   }
 
-  addBtn.addEventListener("click", () => {
+  addBtn.addEventListener("click", async () => {
     const roundVal = Number(roundInput.value) || 0;
     const sheetVal = (sheetInput.value || "").trim();
     const team1 = team1Select.value;
@@ -518,7 +522,7 @@ function setupResults() {
     const scoring = getScoring();
     const outcome = computeResultOutcome(s1, s2, scoring);
 
-    const results = getResults();
+    const results = await getResults();
     results.push({
       team1,
       team2,
@@ -529,7 +533,8 @@ function setupResults() {
       timestamp: Date.now(),
       result: outcome
     });
-    setResults(results);
+
+    await setResults(results);
 
     shots1Input.value = "";
     shots2Input.value = "";
